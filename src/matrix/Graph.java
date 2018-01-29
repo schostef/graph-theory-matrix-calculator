@@ -15,7 +15,7 @@ public class Graph {
 	// Die Methode der Adjazenzmatrix ist momentan der einzige Weg der Grapherstellung
 	// ToDo: Über ein graphisches Interface die A Matrix übermitteln
 	public void createA0Matrix(int[][] a1Matrix){
-		Matrix a1 = new Matrix(a1Matrix, anzahlKnoten);
+		Matrix a1 = new Matrix(a1Matrix);
 		adjazenzMatrizen[0] = a1;
 	}
 	

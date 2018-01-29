@@ -3,13 +3,10 @@ package matrix;
 public class Vector extends Matrix {
 
 	private int[] vector;
-	public Vector() {
-		// TODO Auto-generated constructor stub
-	}
 
-	public Vector(int[] vector, int size) {
+	public Vector(int[] vector) {
 		this.vector = vector;
-		this.size = size;
+		this.size = this.vector.length;
 	}
 
 	public Vector(int size) {

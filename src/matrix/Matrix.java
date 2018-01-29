@@ -4,24 +4,21 @@ package matrix;
  * 
  * Diese Klasse bietet Rechenoperationen einer Matrix
  * Subklassen sind: Vector
- * Diese Klasse berechnet ausschlie√ülich quadratische Matrizen
+ * Diese Klasse berechnet ausschlieﬂlich quadratische Matrizen
  */
 public class Matrix {
 
 	public int[][] matrix;
+	private boolean[][] isZero;
 	protected int size;
-	
-	//Leere Initialisierung sinnlos
-	public Matrix() {
-		// TODO Auto-generated constructor stub
-	}
 	
 	// √úbergeben eines 2 dimensionalen Arrays
 	// Constructor w√§re ohne Angabe der Gr√∂√üe aufrufbar...
 	// Bearbeitung √ºberdenken
-	public Matrix(int[][] matrix, int size) {
+	public Matrix(int[][] matrix) {
 		this.matrix = matrix;
-		this.size = size;
+		this.size = matrix.length;
+		createZeroMatrix();
 	}
 	
 	//Initialisiert eine leere Matrix
@@ -29,6 +26,69 @@ public class Matrix {
 		matrix = new int[size][size];
 		this.size = size;
 	}
+	
+	//Erstelle eine bin‰re Matrix um Nullen als true darzustellen
+	private void createZeroMatrix() {
+		for (int i = 0; i < size; i++) {
+			for (int j = 0; j < size; j++) {
+				if(matrix[i][j] == 0) {
+					isZero[i][j] = true;
+				}else {
+					isZero[i][j] = false;
+				}
+			}
+		}		
+	}
+	
+	//Gib die Anzahl der 0 Werte in der angegebenen Zeile oder Spalte aus
+	//#################################################
+	public int fetchNumOfZerosRow(int zeile) {
+		int s = 0;
+		for (int i = 0; i < size; i++) {
+			if(isZero[zeile][i]) {
+				s++;
+			}			
+		}
+		return s;
+	}
+	
+	public int fetchNumOfZerosColumn(int spalte) {
+		int s = 0;
+		for (int i = 0; i < size; i++) {
+			if(isZero[i][spalte]) {
+				s++;
+			}			
+		}
+		return s;
+	}
+	//###################################################
+	
+	// Gib die Zeilen oder Spaltennummer mit den meisten 0 Werten aus
+	//###################################################
+	public int getMostZerosRow() {
+		int r = 0;
+		for (int i = 1; i < size; i++) {
+			if(fetchNumOfZerosRow(i) < fetchNumOfZerosRow(i-1)) {
+				r = i;
+			}
+		}
+		
+		return r;
+	}
+	
+	public int getMostZerosColumn() {
+		int c = 0;
+		for (int i = 1; i < size; i++) {
+			if(fetchNumOfZerosColumn(i) < fetchNumOfZerosColumn(i-1)) {
+				c = i;
+			}
+		}
+		
+		return c;
+	}
+	//#####################################################
+
+	
 	
 	//Ausgabe an Console
 	public void consolePrintMatrix() {
@@ -47,6 +107,11 @@ public class Matrix {
 	
 	//Setter f√ºr a(i,j)
 	public void setValueAt(int i, int j, int value){
+		if(value == 0) {
+			isZero[i][j] = true;
+		} else {
+			isZero[i][j] = false;
+		}
 		matrix[i][j] = value;
 	}
 	
@@ -128,6 +193,16 @@ public class Matrix {
 		//2. Wie viele determinanten m√ºssen berechnet werden, bis zu einer 3x3 Matrix
 		//3. √úberlegen.... wohin speichert man die Zwischenmatrixen?
 		
+		//Bevor ¸berhaupt Determinanten berechnet werden kˆnnen m¸ssen folgende Variablen vorab initialisiert werden:
+		// -Wie viele Determinanten werden benˆtigt um auf eine 3x3 Matrix zu kommen
+		// -Welche Zeilen, bzw. Spalten kommen in frage bis zur 3x3 Matrix
+		// -Wie viele Zeilen bzw. Spalten enthalten keine 0 = Anzahl der Multiplikatoren
+		//	und Submatrizen
+		// -Setze vorab die Multiplikatoren mit dem negationOverlay fest
+		// -erstelle die Submatrizen
+		// -Anwendung des Sarrus Algorithmus
+		// -Summe bilden und Determinante ausgeben
+		
 		/*
 		 * Matrix[] determinantenMatrizen = new Matrix[knoten - 1];
 		 * 
@@ -136,6 +211,7 @@ public class Matrix {
 		
 		Matrix[] determinanteMatrizes = new Matrix[size - 1];
 		Matrix negationOverlay = new Matrix(size - 1);
+		int removeFlag = 0;
 		
 		//erstelle das "Schachbrettmuster"
 		// summe indizes = 	gerade -> +1
@@ -151,13 +227,19 @@ public class Matrix {
 			}
 		}
 		
-		if(rowSum(getLowestRow()) < columnSum(getLowestColumn())) {
+		//Determiniere nach der kleinsten Zeilensumme
+		//Sonst determiniere nach der kleinsten Spaltensumme
+		if(getMostZerosRow() < getMostZerosColumn()) {
 			/*
 			 * Finde Nullen
 			 * Erstelle Determinante
 			 * Vorzeichen beachten
 			 */
+		}else {
+			
 		}
+		
+		return 0;
 	}
 	
 	
