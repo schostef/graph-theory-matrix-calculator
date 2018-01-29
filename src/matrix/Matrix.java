@@ -107,7 +107,7 @@ public class Matrix {
 			}
 		}
 		
-		return rowNumber;
+		return columnNumber;
 	}
 	
 	//Gibt die Spaltennummer mit der größten Spaltensumme zurück
@@ -135,11 +135,20 @@ public class Matrix {
 		 */
 		
 		Matrix[] determinanteMatrizes = new Matrix[size - 1];
-		Matrix negationOverlay = new Matrix(size);
+		Matrix negationOverlay = new Matrix(size - 1);
 		
+		//erstelle das "Schachbrettmuster"
+		// summe indizes = 	gerade -> +1
+		//					ungerade -> -1
 		negationOverlay.setValueAt(0, 0, 1);
-		for (int i = 0; i < size; i++) {
-			
+		for (int i = 0; i < negationOverlay.size; i++) {
+			for (int j = 0; j < negationOverlay.size; j++) {
+				if((i+j)%2 == 0) {
+					negationOverlay.setValueAt(i, j, 1);
+				}else {
+					negationOverlay.setValueAt(i, j, -1);
+				}
+			}
 		}
 		
 		if(rowSum(getLowestRow()) < columnSum(getLowestColumn())) {
