@@ -209,6 +209,21 @@ public class Matrix {
 		 * 
 		 */
 		
+		Matrix determinateMatrix = this;
+		
+		while(determinateMatrix.size > 3) {
+			// compare Zeros on first row / column
+			// Choose row or column with most zeros
+			// size - numofzeros = num of multiplikators
+			// fill the first array with multiplikators * negationoverlay starting at [0]
+			// permanently remove chosen row / column
+			// temporarily remove column/ row with multiplikator position
+			// store new matrizes in the n-th section of determinateMatrizes
+			// n -- for the while loop, can't use size of single matrix since there can be multiple
+			// but the dimension doesn't change for each of the determinateMatrizes
+			// also the size can be fixed already... S(Size) - 3 = x(numOfDeterminations)
+		}
+		
 		Matrix[] determinanteMatrizes = new Matrix[size - 1];
 		Matrix negationOverlay = new Matrix(size - 1);
 		int removeFlag = 0;
@@ -229,7 +244,7 @@ public class Matrix {
 		
 		//Determiniere nach der kleinsten Zeilensumme
 		//Sonst determiniere nach der kleinsten Spaltensumme
-		if(getMostZerosRow() < getMostZerosColumn()) {
+		if(getMostZerosRow() <= getMostZerosColumn()) {
 			/*
 			 * Finde Nullen
 			 * Erstelle Determinante
