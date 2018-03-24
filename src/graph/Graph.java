@@ -2,9 +2,10 @@ package graph;
 import matrix.*;
 
 public class Graph {
+	private boolean vertexNamesAreInt = true; //Vertex names should either be Letters or Numbers, not both
 	private Vertex[] vertices;
 	private Edge[] edges;
-	private String name = "G";
+	private char name = 'G';
 	private int vertexSum = 0;
 	private int edgeSum = 0;
 
@@ -13,7 +14,7 @@ public class Graph {
 		edges = new Edge[0];
 	}
 	
-	public void addVertex(String name) {
+	public void addVertex(int name) {
 		Vertex[] tV = new Vertex[vertexSum + 1];
 		tV = vertices;
 		tV[vertexSum + 1] = new Vertex(name);

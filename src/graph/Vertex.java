@@ -2,7 +2,9 @@ package graph;
 import arraytools.*;
 public class Vertex {
 	
-	private String name = "V",description = "";
+	private int name = 0;
+	//private char cName = 'A';
+	private String description = "";
 	private int posX = 0,posY = 0;
 	private int degree = 0;
 	private boolean isIsolated = true;
@@ -14,17 +16,17 @@ public class Vertex {
 		
 	}
 	
-	public Vertex(String name) {
+	public Vertex(int name) {
 		this.name = name;
 		edges = new Edge[0];
 		neighbors = new Vertex[0];
 	}
 
-	public String getName() {
+	public int getName() {
 		return name;
 	}
 
-	public void setName(String name) {
+	public void setName(int name) {
 		this.name = name;
 	}
 
@@ -83,20 +85,24 @@ public class Vertex {
 			tempNeighbor[neighbors.length+1]=v;
 			checkIsolation();
 			degree++;
-			v.addNeighbor(this);
 			neighbors = tempNeighbor;
+			
 		}
 		
 	}
 	
 	public boolean neighborExists(Vertex v) {
-		for (int i = 0; i < neighbors.length ;i++ ){
-			if (neighbors[i].getName().equals( v.getName() )) {
-				return true;
-			}
+		if(neighbors.length == 0) {
+			return false;
 		}
-		return false;
+		int[] neighborNames = new int[neighbors.length];
+		for(int i = 0; i < neighbors.length; i++) {
+			neighborNames[i] = neighbors[i].getName();
+		}
+		return ArrayTools.isDuplicate(neighborNames,v.getName());
 	}
+	
+	
 	
 	public void checkIsolation(){
 		if(neighbors.length > 0) {

@@ -21,16 +21,34 @@ public class ArrayTools {
 	 * Sorting integer values. Algorithm consists of a mixture of the Hoare
 	 * Fragmentation and Bubble Sort
 	 * 
-	 * @param inputArray
+	 * @param inputArray Array to sort
 	 * @return Sorted Array
 	 */
-
 	public static int[] sort(int[] inputArray) {
 		if (isEmpty(inputArray)) {
 			return inputArray;
 		}
 
 		return quickSort(inputArray, 0, inputArray.length - 1);
+	}
+	
+	/**
+	 * Sorting characters by their numeric values. Algorithm consists of a mixture of the Hoare
+	 * Fragmentation and Bubble Sort
+	 * 
+	 * @param inputArray Array to sort
+	 * @return Sorted Array
+	 */
+	public static char[] sort(char[] inputArray) {
+		if(isEmpty(inputArray)) {
+			return inputArray;
+		}
+		
+		//Typecast the array to int, sort it and cast it back to char
+		int[] array = toInt(inputArray);
+		return toChar(quickSort(array, 0, array.length - 1));
+		
+		
 	}
 
 	/**
@@ -106,23 +124,20 @@ public class ArrayTools {
 
 	/*
 	 * ****************************************************************** 
-	 * Single Value Manipulation
+	 * Value Manipulation
 	 * ******************************************************************
 	 */
 
 	/**
 	 * Swap two values providing their indizes.
 	 * 
-	 * @param arr
-	 *            Input Array
-	 * @param idxL
-	 *            First Index
-	 * @param idxH
-	 *            Second Index
-	 * @return
+	 * @param arr Input Array
+	 * @param idxL First Index
+	 * @param idxH Second Index
+	 * @return Array
 	 */
 	public static int[] swapValues(int[] arr, int idxL, int idxH) {
-		if (arr == null || arr.length == 0 || idxL < 0 || idxL > arr.length || idxH < 0 || idxH > arr.length) {
+		if (isEmpty(arr) || idxL < 0 || idxL > arr.length || idxH < 0 || idxH > arr.length) {
 			return arr;
 		}
 		int temp = arr[idxL];
@@ -130,6 +145,43 @@ public class ArrayTools {
 		arr[idxH] = temp;
 		return arr;
 
+	}
+	
+	/**
+	 * Typecast an array from char to int
+	 * @param inputArr Type char input array
+	 * @return Type int output array
+	 */
+	public static int[] toInt(char[] inputArr) {
+		if(isEmpty(inputArr)) {
+			return new int[0];
+		}
+		
+		int[] castArr = new int[inputArr.length];
+		for (int i = 0; i < castArr.length; i++) {
+			castArr[i] = (int)inputArr[i];
+		}
+		
+		return castArr;
+		
+	}
+	
+	/**
+	 * Typecast an array from int to char
+	 * @param inputArr Type int input array
+	 * @return Type char output array
+	 */
+	public static char[] toChar(int[] inputArr) {
+		if(isEmpty(inputArr)) {
+			return new char[0];
+		}
+		
+		char[] castArr = new char[inputArr.length];
+		for (int i = 0; i < castArr.length; i++) {
+			castArr[i] = (char)inputArr[i];
+		}
+		
+		return castArr;
 	}
 
 	/*
@@ -174,6 +226,38 @@ public class ArrayTools {
 		}
 		return false;
 	}
+	
+	/**
+	 * Checks if an Array is NULL or empty
+	 * 
+	 * @param inputArr
+	 * @return boolean
+	 */
+	public static boolean isEmpty(char[] inputArr) {
+		if (inputArr == null || inputArr.length == 0) {
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * Checks if a value already exists in a given array
+	 * @param inputArr Array to check
+	 * @param v The value to search
+	 * @return true if the value was found in the array
+	 */
+	public static boolean isDuplicate(int[] inputArr, int v) {
+		if(isEmpty(inputArr)) {
+			return false;
+		}
+		boolean duplicationFound = false;
+		for (int i = 0; i < inputArr.length; i++) {
+			if(inputArr[i] == v) {
+				duplicationFound = true;
+			}
+		}
+		return duplicationFound;
+	}
 
 	/*
 	 * *******************************************************************
@@ -187,8 +271,8 @@ public class ArrayTools {
 	
 	/**
 	 * Increase the size of an array by 1
-	 * @param arr
-	 * @return
+	 * @param arr Input Array
+	 * @return Input Array with length + 1
 	 */
 	public static int[] expand(int[] arr) {
 		int[] ta = new int[arr.length + 1];
@@ -199,9 +283,9 @@ public class ArrayTools {
 	/**
 	 * Increase the size of an array by 1
 	 * Add the supplied value to the last index
-	 * @param arr
-	 * @param v
-	 * @return
+	 * @param arr Input Array
+	 * @param v The value to add to the last index
+	 * @return Output Array with length + 1 and value on last index
 	 */
 	public static int[] push(int[] arr, int v) {
 		int[] ta = new int[arr.length + 1];
@@ -231,6 +315,21 @@ public class ArrayTools {
 	 * @param arr
 	 */
 	public static void printOnConsole(int[] arr) {
+		if (isEmpty(arr)) {
+			System.out.println("");
+		} else {
+			for (int i = 0; i < arr.length; i++) {
+				System.out.print(arr[i] + ", ");
+			}
+			System.out.println();
+		}
+	}
+	
+	/**
+	 * Print array to console
+	 * @param arr
+	 */
+	public static void printOnConsole(char[] arr) {
 		if (isEmpty(arr)) {
 			System.out.println("");
 		} else {

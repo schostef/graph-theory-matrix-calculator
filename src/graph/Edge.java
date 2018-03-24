@@ -8,8 +8,16 @@ public class Edge {
 	private boolean isBridge = false;
 
 	public Edge(Vertex v1, Vertex v2) {
+		v1.addNeighbor(v2);
+		v2.addNeighbor(v1);
 		vertices[0] = v1;
 		vertices[1] = v2;
+	}
+	
+	public Edge(Vertex v1, Vertex v2, boolean directional) {
+		vertices[0] = v1;
+		vertices[1] = v2;
+		isDirectional = directional;
 	}
 	
 	public String toString() {
