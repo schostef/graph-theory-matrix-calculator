@@ -276,7 +276,9 @@ public class ArrayTools {
 	 */
 	public static int[] expand(int[] arr) {
 		int[] ta = new int[arr.length + 1];
-		ta = arr;
+		for (int i = 0; i < arr.length; i++) {
+			ta[i] = arr[i];
+		}
 		return ta;
 	}
 	
@@ -288,8 +290,8 @@ public class ArrayTools {
 	 * @return Output Array with length + 1 and value on last index
 	 */
 	public static int[] push(int[] arr, int v) {
-		int[] ta = new int[arr.length + 1];
-		ta[arr.length + 1] = v;
+		int[] ta = expand(arr);
+		ta[arr.length] = v;
 		return ta;
 	}
 
