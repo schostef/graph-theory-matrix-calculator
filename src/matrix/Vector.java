@@ -11,9 +11,12 @@
 
 package matrix;
 
+import arraytools.ArrayTools;
+
 public class Vector {
 
 	private int[] vector;
+	private boolean[] binVector;
 	public int size;
 	
 	/*
@@ -40,6 +43,15 @@ public class Vector {
 		vector = new int[size]; 
 	}
 	
+	/**
+	 * Creates a boolean type Vector
+	 * @param vector vector values
+	 */
+	public Vector(boolean[] vector) {
+		binVector = vector;
+		this.size = vector.length;
+	}
+	
 	/*
 	 * ***********************************************************************
 	 */
@@ -51,7 +63,30 @@ public class Vector {
 	 */
 	
 	public int[] getVector() {
-		return vector;
+			return vector;	
+	}
+	
+	public boolean[] getBinVector() {
+		return binVector;	
+}
+	
+	public boolean[] binGetVector() {
+		return binVector;
+	}
+	
+	/*
+	 * ************************************************************************
+	 */
+	
+	/*
+	 * ************************************************************************
+	 * Setters
+	 * ************************************************************************
+	 */
+	
+	public void setBinVector(boolean[] vector) {
+		this.binVector = vector;
+		
 	}
 	
 	/*
@@ -74,12 +109,41 @@ public class Vector {
 			return false;
 		}
 		
-		for(int i = 0; i < this.size; i++) {
-			if(vector[i] != v.getVector()[i]) {
-				return false;
+		if (vector != null) {
+			for(int i = 0; i < this.size; i++) {
+				if(vector[i] != v.getVector()[i]) {
+					return false;
+				}
 			}
+			return true;
+		}else if (binVector != null) {
+			for(int i = 0; i < this.size; i++) {
+				if(binVector[i] != v.getBinVector()[i]) {
+					return false;
+				}
+			}
+			return true;
 		}
-		return true;
+		return false;
+	}
+	
+	/**
+	 * Search a int type vector for a value. If the value is found write the boolean value inside the binVector
+	 * @param vector int vecotor to search for
+	 * @param value value to search for
+	 * @param binSet value of a success to write in the binVector
+	 */
+	public void findValueAndSet(Vector vector, int value, boolean binSet) {
+		if(!binSet) {
+			boolean[] negation = ArrayTools.findAllDuplicates(vector.getVector(), value);
+			for (int i = 0; i < negation.length; i++) {
+				negation[i] = !negation[i];
+			}
+			binVector = negation;			
+		}else {
+			binVector = ArrayTools.findAllDuplicates(vector.getVector(), value);
+		}
+		
 	}
 	
 	
@@ -136,13 +200,22 @@ public class Vector {
 	
 	public String toString() {
 		String text = "";
-		
-		for (int i = 0; i < size; i++) {
-			text += vector[i]+" ";
+		if(vector != null) {		
+			for (int i = 0; i < size; i++) {
+				text += vector[i]+" ";
+			}
+		}else if (binVector != null) {
+			for (int i = 0; i < size; i++) {
+				text += binVector[i]+" ";
+			}
 		}
 		
 		return text;
 	}
+
+	
+
+	
 
 	
 	

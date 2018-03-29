@@ -258,6 +258,29 @@ public class ArrayTools {
 		}
 		return duplicationFound;
 	}
+	
+	/**
+	 * Searches the Array for a value and provides a boolean Array with the
+	 * findings
+	 * @param inputArr Array to search
+	 * @param v Value to search for
+	 * @return Flagged Array, true for Value found, false for Value not found
+	 */
+	public static boolean[] findAllDuplicates(int[] inputArr, int v) {
+		if (isEmpty(inputArr)) {
+			return new boolean[0];
+		}
+		boolean[] duplications = new boolean[inputArr.length];
+		
+		for(int i = 0; i < inputArr.length; i++) {
+			if (inputArr[i] == v) {
+				duplications[i] = true;
+			}else {
+				duplications[i] = false;
+			}
+		}
+		return duplications;
+	}
 
 	/*
 	 * *******************************************************************

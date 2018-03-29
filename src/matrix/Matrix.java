@@ -14,6 +14,7 @@ import arraytools.*;
 public class Matrix {
 
 	private int[][] matrix;
+	private boolean[][] binMatrix;
 	public Vector[] verticalVectors, horizontalVectors;
 	private boolean[][] isZero;
 	private boolean isSymmetric = true;
@@ -31,11 +32,26 @@ public class Matrix {
 	 * @param matrix 2 Dimensional int Array
 	 */
 	public Matrix(int[][] matrix) {
+		this.matrix = new int[matrix.length][matrix.length];
+		for(int i = 0; i < matrix.length; i++) {
+			for (int j = 0; j < matrix.length; j++) {
+				this.matrix[i][j] = matrix[i][j];
+			}
+		}
+		this.size = matrix.length;
 		verticalVectors = new Vector[matrix[0].length];
 		horizontalVectors = new Vector[matrix.length];
-		vectorize(matrix);
-		this.matrix = matrix;
-		this.size = matrix.length;
+		vectorize(this.matrix);
+		
+	}
+	
+	public Matrix(boolean[][] m) {
+		binMatrix = m;
+		this.size = m.length;
+		verticalVectors = new Vector[size];
+		horizontalVectors = new Vector[size];
+		vectorize(binMatrix);
+		
 	}
 
 	/**
@@ -48,6 +64,21 @@ public class Matrix {
 		verticalVectors = new Vector[size];
 		horizontalVectors = new Vector[size];
 		this.size = size;
+	}
+	
+	/**
+	 * Construct a new binary Matrix and set all Values to the value provided.
+	 * @param size Matrix size
+	 * @param value Flag to set to all fields
+	 */
+	public Matrix(int size, boolean value) {
+		binMatrix = new boolean[size][size];
+		verticalVectors = new Vector[size];
+		horizontalVectors = new Vector[size];
+		this.size = size;
+		fillAll(value);
+		vectorize(binMatrix);
+		
 	}
 
 	/*
@@ -68,8 +99,26 @@ public class Matrix {
 		return matrix;
 	}
 	
+	public boolean[][] getBinMatrix(){
+		return binMatrix;
+	}
+	
 	public int getValueAt(int i, int j) {
 		return matrix[i][j];
+	}
+	
+	/**
+	 * Get a single vertical or horizontal Vector
+	 * @param index Vector index
+	 * @param isHorizontal true = horizontal, false = vertical
+	 * @return Vector at index
+	 */
+	public Vector getVector(int index, boolean isHorizontal) {
+		if (isHorizontal) {
+			return horizontalVectors[index];
+		}else {
+			return verticalVectors[index];
+		}
 	}
 
 	
@@ -90,6 +139,11 @@ public class Matrix {
 		matrix[i][j] = value;
 	}
 	
+	public void setFlagAt(int i, int j) {
+		binMatrix[i][j] = !binMatrix[i][j];
+		
+	}
+	
 	/*
 	 * *****************************************************************
 	 * Manipulation and Creation
@@ -103,6 +157,23 @@ public class Matrix {
 	 * @param matrix Pass a matrix Object when called externally
 	 */
 	public void vectorize(int[][] matrix) {
+		for (int i = 0; i < matrix.length; i++) {
+			horizontalVectors[i] = new Vector(cutVector(matrix, i, true));
+			verticalVectors[i] = new Vector(cutVector(matrix, i, false));
+			if (!(isSymmetric && horizontalVectors[i].isEqual(verticalVectors[i]))) {
+				isSymmetric = false;
+			}
+		}
+	}
+	
+	/**
+	 * Split the matrix into horizontal and vertical Vectors:
+	 * horizontalVectors[] , verticalVectors[]
+	 * Check the Symmetry and set the isSymmetric flag accordingly
+	 * @see vectorize(int[][] matrix)
+	 * @param matrix matrix to vectorize
+	 */
+	public void vectorize(boolean[][] matrix) {
 		for (int i = 0; i < matrix.length; i++) {
 			horizontalVectors[i] = new Vector(cutVector(matrix, i, true));
 			verticalVectors[i] = new Vector(cutVector(matrix, i, false));
@@ -146,6 +217,73 @@ public class Matrix {
 			}
 		}
 		return tempArray;
+	}
+	
+	/**
+	 * Get a Vector (of type boolean[]) out of a provided 2-Dimensional Array
+	 * @param matrix 2 - Dimensional array
+	 * @param position - index of the Vector
+	 * @param isHorizontal - True if the vector is a N (horizontal Vector), false for M (vertical)
+	 * @return 1 Dimensional Array of target Vector
+	 */
+	public boolean[] cutVector(boolean[][] matrix, int position, boolean isHorizontal) {
+		boolean[] tempArray = new boolean[matrix.length];
+		if (isHorizontal) {
+			for (int i = 0; i < matrix.length; i++) {
+				tempArray[i] = matrix[position][i];
+			}
+		} else {
+			for (int i = 0; i < matrix.length; i++) {
+				tempArray[i] = matrix[i][position];
+			}
+		}
+		return tempArray;
+	}
+	
+	/**
+	 * Set every field in the binMatrix to the boolean value
+	 * @param value
+	 */
+	public void fillAll(boolean value) {
+		for(int i = 0; i < size; i++) {
+			for(int j = 0; j < size; j++) {
+				binMatrix[i][j] = value;
+			}
+		}
+	}
+	
+	/**
+	 * Search for an Integer value in the provided Matrix
+	 * @param matrix Integer type Matrix
+	 * @param i Value to search for in matrix
+	 * @return A binary Matrix . true = value found , false = value not found
+	 */
+	public static Matrix searchAndReport(Matrix matrix, int i) {
+		Matrix resultMatrix = new Matrix(matrix.size,false);
+		//Check for symmetry
+		if (matrix.isSymmetric()) {
+			
+			int vertexNumber = 0;
+			while (vertexNumber < matrix.size) {
+				resultMatrix.verticalVectors[vertexNumber].findValueAndSet(matrix.verticalVectors[vertexNumber], i, true);
+				resultMatrix.getVector(vertexNumber, true).setBinVector(resultMatrix.getVector(vertexNumber, false).binGetVector());
+				vertexNumber++;
+			}
+			resultMatrix.refreshBinMatrix();
+		}
+		resultMatrix.vectorize(resultMatrix.binMatrix);
+		return resultMatrix;		
+	}
+	
+	/**
+	 * Write the Vectors into the binMatrix
+	 */
+	public void refreshBinMatrix() {
+		if(isSymmetric) {
+			for (int i = 0; i < size; i++) {
+				binMatrix[i] = getVector(i,true).getBinVector();
+			}
+		}
 	}
 	
 	/*
@@ -214,7 +352,29 @@ public class Matrix {
 	/*
 	 * ********************************************************************
 	 */
-
+	
+	/*
+	 * ********************************************************************
+	 * Control Mechanisms
+	 * ********************************************************************
+	 */
+	
+	public static boolean isIdentical(Matrix m1, Matrix m2) {
+		if(m1 != null && m2 != null && m1.size == m2.size) {
+			for (int i = 0; i < m1.size; i++) {
+				if(!m1.verticalVectors[i].isEqual(m2.verticalVectors[i])) {
+					return false;
+				}
+			}
+			return true;
+		}else {
+			return false;
+		}
+	}
+	
+	/*
+	 * ********************************************************************
+	 */
 
 	
 
@@ -446,6 +606,10 @@ public class Matrix {
 
 		return text;
 	}
+
+	
+
+	
 
 	/*
 	 * *****************************************************************************

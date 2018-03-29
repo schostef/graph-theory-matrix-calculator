@@ -17,6 +17,9 @@ public class Graph {
 	private Vertex[] vertices;
 	private Edge[] edges;
 	private Matrix[] adjacencyMatrizes; //Adjacency Matrix at Index 0, exponentialmatrizes onwards, where Index + 1 = exponent
+	private Matrix pathMatrix;
+	private Matrix distanceMatrix;
+	private Matrix controlMatrix;
 	private char name = 'G';
 	private int vertexSum = 0; //total number of Vertices
 	private int edgeSum = 0; //Total number of edges
@@ -30,9 +33,7 @@ public class Graph {
 	 * Empty Graph
 	 */
 	public Graph() {
-		vertices = new Vertex[0];
-		edges = new Edge[0];
-		adjacencyMatrizes = new Matrix[0];
+		reinitialize();
 	}
 	
 	/**
@@ -40,6 +41,7 @@ public class Graph {
 	 * @param m Adjacency Matrix
 	 */
 	public Graph(Matrix m) {
+		reinitialize();
 		drawFromMatrix(m);
 		adjacencyMatrizes = new Matrix[vertexSum -1];
 		adjacencyMatrizes[0] = m;
@@ -59,10 +61,12 @@ public class Graph {
 		vertices = null;
 		edges = null;
 		adjacencyMatrizes = null;
+		controlMatrix = null;
 		vertexSum = 0;
 		edgeSum = 0;
 		vertices = new Vertex[0];
 		edges = new Edge[0];
+		adjacencyMatrizes = new Matrix[0];
 	}
 	
 	/*
@@ -96,14 +100,19 @@ public class Graph {
 		return adjacencyMatrizes[exponent - 1];
 	}
 	
-	/**
-	 * Calculate all Exponentialmatrizes to the maximum Number of vertex count - 1
-	 */
-	public void calculateExponentialMatrizes() {
-		for(int i = 1; i < vertexSum; i++) {
-			adjacencyMatrizes[i-1] = adjacencyMatrizes[0].exponentiate(i);
-		}
+	public Matrix getPathMatrix() {
+		return pathMatrix;
 	}
+	
+	public Matrix getDistanceMatrix() {
+		return distanceMatrix;
+	}
+	
+	public Matrix getControlMatrix() {
+		return controlMatrix;
+	}
+	
+	
 	
 	
 	/*
@@ -185,6 +194,14 @@ public class Graph {
 	 * Matrix methods
 	 * *************************************************************************
 	 */
+	/**
+	 * Calculate all Exponentialmatrizes to the maximum Number of vertex count - 1
+	 */
+	public void calculateExponentialMatrizes() {
+		for(int i = 1; i < vertexSum; i++) {
+			adjacencyMatrizes[i-1] = adjacencyMatrizes[0].exponentiate(i);
+		}
+	}
 	
 	/**
 	 * Construct the Adjacency Matrix from the drawn Graph and add it to the
@@ -211,6 +228,80 @@ public class Graph {
 	public void refreshAdjacencyMatrizes() {
 		Matrix[] tempAMatrizes = new Matrix[vertexSum-1];
 		adjacencyMatrizes = tempAMatrizes;
+	}
+	
+	/**
+	 * Create the Pathmatrix out of the Adjacency Matrix
+	 * Copy Adjacency Matrix and set Vertex's Path to itself to 1
+	 */
+	public void initializePathMatrix() {
+		if(adjacencyMatrizes[0] != null) {
+			pathMatrix = new Matrix(adjacencyMatrizes[0].getMatrix());
+			for(int i = 0; i < vertexSum; i++) {
+				pathMatrix.setValueAt(i, i, 1);
+			}
+			pathMatrix.vectorize();
+			initializeControlMatrix();
+		}
+	}
+	
+	public void initializeDistanceMatrix() {
+		if(adjacencyMatrizes[0] != null) {
+			distanceMatrix = new Matrix(adjacencyMatrizes[0].getMatrix());
+		}
+		distanceMatrix.vectorize();
+	}
+	
+	/**
+	 * Create a binaryMatrix flagging all 1s with true and all 0s with false
+	 */
+	public void initializeControlMatrix(){
+		clearControlMatrix();
+		controlMatrix = Matrix.searchAndReport(pathMatrix,1);
+	}
+	
+	/**
+	 * Reset the Controlmatrix flagging all values to false
+	 */
+	public void clearControlMatrix() {
+		controlMatrix = null;
+		controlMatrix = new Matrix(vertexSum,false);
+	}
+	
+	public void calculateDistancePathMatrix() {
+		Matrix lastControlMatrix = new Matrix(controlMatrix.getBinMatrix());
+		int pathlength = 2;
+		do {
+			lastControlMatrix = null;
+			lastControlMatrix = new Matrix(controlMatrix.getBinMatrix());;
+			for(int vector = 0; vector < vertexSum; vector++) {
+				for (int position = 0; position < vertexSum; position++) {
+					if(!controlMatrix.getBinMatrix()[vector][position]) {
+						if(adjacencyMatrizes[pathlength-1].getValueAt(vector, position) != 0) {
+							pathMatrix.setValueAt(vector, position, 1);
+							distanceMatrix.setValueAt(vector, position, pathlength);
+							controlMatrix.setFlagAt(vector, position);
+						}
+					}
+				}
+			}
+			pathlength++;
+		}while(!Matrix.isIdentical(controlMatrix, lastControlMatrix) && pathlength < vertexSum);
+		
+		if(!Matrix.isIdentical(controlMatrix, new Matrix(vertexSum,true))) {
+			for(int vector = 0; vector < vertexSum; vector++) {
+				for (int position = 0; position < vertexSum; position++) {
+					if(!controlMatrix.getBinMatrix()[vector][position]) {
+						distanceMatrix.setValueAt(vector, position, -1);
+					}
+				}
+			}
+		}
+		
+		pathMatrix.vectorize();
+		distanceMatrix.vectorize();
+		controlMatrix.vectorize(controlMatrix.getBinMatrix());
+		
 	}
 	
 	
