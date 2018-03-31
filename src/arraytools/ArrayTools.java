@@ -183,6 +183,20 @@ public class ArrayTools {
 		
 		return castArr;
 	}
+	
+	public static int[] fill(int[] inputArr, int value) {
+		if(isEmpty(inputArr)) {
+			return inputArr;
+		}
+		
+		int[] tempArr = new int[inputArr.length];
+		
+		for(int i = 0; i < inputArr.length; i++) {
+			tempArr[i] = value;
+		}
+		
+		return tempArr;
+	}
 
 	/*
 	 * *******************************************************************
@@ -328,6 +342,78 @@ public class ArrayTools {
 	public static int[] pushAndSort(int[] arr, int v) {
 		return sort(push(arr, v));
 	}
+	
+	/*
+	 * *******************************************************************
+	 */
+	
+	/*
+	 * *******************************************************************
+	 * Calculations
+	 * *******************************************************************
+	 */
+	
+	public static int sum(int[] inputArr) {
+		if(isEmpty(inputArr)) {
+			return 0;
+		}
+		
+		int sum = 0;
+		for(int i = 0; i < inputArr.length; i++) {
+			sum += inputArr[i];
+		}
+		
+		return sum;
+	}
+	
+	public static int sum(int[] inputArr, int fromIndex, int toIndex) {
+		if(isEmpty(inputArr)) {
+			return 0;
+		}
+		
+		int sum = 0;
+		for(int i = fromIndex; i < toIndex; i++) {
+			sum += inputArr[i];
+		}
+		
+		return sum;
+	}
+	
+	public static int maxOf(int[] inputArr) {
+		if(isEmpty(inputArr)) {
+			return 0;
+		}
+		
+		int max = Integer.MIN_VALUE;
+		
+		for (int i = 0; i < inputArr.length; i++) {
+			if(inputArr[i] > max) {
+				max = inputArr[i];
+			}
+		}
+		
+		return max;
+	}
+	
+	public static int minOf(int[] inputArr) {
+		if(isEmpty(inputArr)) {
+			return 0;
+		}
+		
+		int min = Integer.MAX_VALUE;
+		
+		for (int i = 0; i < inputArr.length; i++) {
+			if(inputArr[i] < min) {
+				min = inputArr[i];
+			}
+		}
+		
+		return min;
+	}
+	
+	/*
+	 * *******************************************************************
+	 */
 
 	/*
 	 * *******************************************************************

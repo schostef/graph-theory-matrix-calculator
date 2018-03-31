@@ -10,6 +10,7 @@
 package matrix;
 
 import arraytools.*;
+import graph.Vertex;
 
 public class Matrix {
 
@@ -286,6 +287,16 @@ public class Matrix {
 		}
 	}
 	
+	public Matrix shrinkByIndizes(int[] vertexIndizes) {
+		Matrix shrinkedMatrix = new Matrix(vertexIndizes.length);
+		for (int i = 0; i < vertexIndizes.length; i++) {
+			for (int j = 0; j < vertexIndizes.length; j++) {
+				shrinkedMatrix.setValueAt(i, j, this.getValueAt(vertexIndizes[i], vertexIndizes[j]));
+			}
+		}
+		return shrinkedMatrix;
+	}
+	
 	/*
 	 * ******************************************************************
 	 */
@@ -347,6 +358,56 @@ public class Matrix {
 		}
 		resultMatrix.vectorize();
 		return resultMatrix;
+	}
+	
+	// Berechne die Zeilensumme von Zeile i
+	public Vector vectorSums(boolean isHorizontal) {
+		Vector result = new Vector(size);
+		
+		for(int i = 0; i < size; i++) {
+			if(isHorizontal) {
+				result.setValueAt(i, horizontalVectors[i].sumOf());
+			}else {
+				result.setValueAt(i, verticalVectors[i].sumOf());
+			}
+		}
+		
+		return result;
+	}
+	
+	public Vector vectorHighestValues(boolean isHorizontal) {
+		Vector result = new Vector(size);
+		
+		for(int i = 0; i < size; i++) {
+			if(isHorizontal) {
+				result.setValueAt(i, horizontalVectors[i].getMax());
+			}else {
+				result.setValueAt(i, verticalVectors[i].getMax());
+			}
+		}
+		
+		return result;
+	}
+
+	// Berechne die Spaltensumme von Spalte j
+	public int columnSum(int column) {
+		int sum = 0;
+
+		for (int i = 0; i < size; i++) {
+			sum += matrix[i][column];
+		}
+
+		return sum;
+
+	}
+	
+	public int getTotalSum() {
+		int totalSum= 0;
+		for(int i = 0; i < size; i++) {
+			totalSum += horizontalVectors[i].sumOf(i, size);
+		}
+		
+		return totalSum;
 	}
 	
 	/*
@@ -448,29 +509,7 @@ public class Matrix {
 
 	
 
-	// Berechne die Zeilensumme von Zeile i
-	public int rowSum(int row) {
-		int sum = 0;
-
-		for (int i = 0; i < size; i++) {
-			sum += matrix[row][i];
-		}
-
-		return sum;
-
-	}
-
-	// Berechne die Spaltensumme von Spalte j
-	public int columnSum(int column) {
-		int sum = 0;
-
-		for (int i = 0; i < size; i++) {
-			sum += matrix[i][column];
-		}
-
-		return sum;
-
-	}
+	
 
 	// Gibt die Zeilennummer mit der kleinsten Zeilensumme zurück
 	public int getLowestRow() {
@@ -606,6 +645,10 @@ public class Matrix {
 
 		return text;
 	}
+
+	
+
+	
 
 	
 

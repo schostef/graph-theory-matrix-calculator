@@ -10,6 +10,7 @@
 package graph;
 
 public class Edge {
+	private int id = 0;
 	private String name = "", description = "";
 	private int weight = 0;
 	private Vertex[] vertices = new Vertex[2]; //The vertices this Edge is connected to
@@ -34,6 +35,15 @@ public class Edge {
 		vertices[1] = v2;
 	}
 	
+	public Edge(int id, Vertex v1, Vertex v2, String name) {
+		this.id = id;
+		v1.addNeighbor(v2);
+		v2.addNeighbor(v1);
+		vertices[0] = v1;
+		vertices[1] = v2;
+		this.name = name;
+	}
+	
 	/**
 	 * Directional
 	 * @param v1 Source Vertex
@@ -50,6 +60,24 @@ public class Edge {
 	 * *****************************************************************************
 	 */
 	
+	/*
+	 * *****************************************************************************
+	 * Getters
+	 * *****************************************************************************
+	 */
+	
+	public String getName() {
+		return name;
+	}
+	
+	public Vertex[] getVertices() {
+		return vertices;
+	}
+	
+	/*
+	 * *****************************************************************************
+	 */
+	
 
 	/*
 	 * *****************************************************************************
@@ -58,7 +86,7 @@ public class Edge {
 	 */
 	
 	public String toString() {
-		return "Kante "+name+", verbunden mit Knoten: "+ vertices[0].getName()+", "+vertices[1].getName();
+		return "Kante "+name;
 	}
 	
 	/*

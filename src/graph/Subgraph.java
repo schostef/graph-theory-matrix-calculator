@@ -1,9 +1,40 @@
 package graph;
 
+import matrix.Matrix;
+
 public class Subgraph extends Graph {
+	private boolean isSaturated;
+	private boolean isSpanning;
+	private Graph parentGraph;
 
 	public Subgraph() {
-		// TODO Auto-generated constructor stub
+		reinitialize();
+	}
+	
+	public Subgraph(Graph parentGraph, Vertex[] vertices, Edge[] edges, Matrix adjacencyMatrix) {
+		this.parentGraph = parentGraph;
+		this.vertices = vertices;
+		this.edges = edges;
+		this.adjacencyMatrizes = new Matrix[1];
+		this.adjacencyMatrizes[0] = adjacencyMatrix;
+		
+	}
+
+	public Subgraph(Matrix m) {
+		
+	}
+	
+	
+	public String toString() {
+		String text = "";
+		for (int i = 0; i < vertices.length; i++) {
+			text += vertices[i]+"\n";
+		}
+		for (int j = 0; j < edges.length; j++) {
+			text += edges[j]+"\n";
+		}
+		
+		return text;
 	}
 
 }

@@ -20,6 +20,7 @@ public class Vertex {
 	private int degree = 0; 
 	private boolean isIsolated = true;
 	private boolean isArticulation = false;
+	private boolean isCenter = false;
 	private Vertex[] neighbors; //Adjacent Vertices
 	private Edge[] edges; //Incident Edges
 
@@ -57,6 +58,9 @@ public class Vertex {
 	 * ************************************************************
 	 */
 
+	public boolean isCenter() {
+		return isCenter;
+	}
 	public int getName() {
 		return name;
 	}
@@ -87,6 +91,16 @@ public class Vertex {
 	
 	public Vertex[] getNeighbors() {
 		return neighbors;
+	}
+	
+	public Edge getEdge(Vertex toVertex) {
+		for (int i = 0; i < edges.length; i++) {
+			if(toVertex.getName() == edges[i].getVertices()[0].getName() ||
+					toVertex.getName() == edges[i].getVertices()[1].getName()) {
+				return edges[i];
+			}
+		}
+		return null;
 	}
 	
 	/*
@@ -123,6 +137,10 @@ public class Vertex {
 		this.neighbors = neighbors;
 	}
 	
+	public void switchCenter() {
+		isCenter = !isCenter;
+	}
+	
 	/*
 	 * **************************************************************
 	 */
@@ -151,6 +169,21 @@ public class Vertex {
 			
 		}
 		
+	}
+	
+	public void addEdge(Edge e) {
+		Edge[] tempEdges = push(e);
+		edges = null;
+		edges = tempEdges;
+	}
+	
+	public Edge[] push(Edge e) {
+		Edge[] tempEdges = new Edge[edges.length+1];
+		for (int i = 0; i < edges.length; i++) {
+			tempEdges[i] = edges[i];
+		}
+		tempEdges[edges.length] = e;
+		return tempEdges;
 	}
 	
 	/*
@@ -201,10 +234,10 @@ public class Vertex {
 	 */
 	public String toString() {
 		String text = "";
-		for (int i = 0; i < neighbors.length; i++) {
-			text += neighbors[i].getName()+", ";
+		for (int i = 0; i < edges.length; i++) {
+			text += edges[i].getName()+", ";
 		}
-		return "Vertex: " + name + ", Grad: "+ degree + ", Verbunden mit: "+text + "Isoliert: "+isIsolated;
+		return "Vertex: " + name + ", Grad: "+ degree + ", Kanten: "+text + "Isoliert: "+isIsolated+ "Zentrum?: "+isCenter;
 	}
 	
 	/*

@@ -11,6 +11,7 @@ package arraytools;
 
 import graph.Edge;
 import graph.Vertex;
+import matrix.Vector;
 
 public class GraphTools {
 	/**
@@ -59,8 +60,23 @@ public class GraphTools {
 	 * @param v The value to add to the last index
 	 * @return Output Array with length + 1 and value on last index
 	 */
-	public static Edge[] push(Edge[] arr, Edge v) {
+	public static Edge[] push(Edge[] arr, Edge e) {
 		Edge[] ta = expand(arr);
+		ta[arr.length] = e;
+		return ta;
+	}
+	
+	public static Vector[] expand(Vector[] arr) {
+		Vector[] ta = new Vector[arr.length + 1];
+		for (int i = 0; i < arr.length; i++) {
+			ta[i] = arr[i];
+		}
+		return ta;
+	}
+	
+
+	public static Vector[] push(Vector[] arr, Vector v) {
+		Vector[] ta = expand(arr);
 		ta[arr.length] = v;
 		return ta;
 	}

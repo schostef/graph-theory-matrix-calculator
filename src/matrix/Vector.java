@@ -52,6 +52,12 @@ public class Vector {
 		this.size = vector.length;
 	}
 	
+	public Vector(int size, int value) {
+		this.size = size;
+		vector = new int[size]; 
+		fill(value);
+	}
+	
 	/*
 	 * ***********************************************************************
 	 */
@@ -74,6 +80,14 @@ public class Vector {
 		return binVector;
 	}
 	
+	public int getValueAt(int index) {
+		return vector[index];
+	}
+	
+	public boolean getBinValueAt(int index) {
+		return binVector[index];
+	}
+	
 	/*
 	 * ************************************************************************
 	 */
@@ -87,6 +101,10 @@ public class Vector {
 	public void setBinVector(boolean[] vector) {
 		this.binVector = vector;
 		
+	}
+	
+	public void setValueAt(int index, int value) {
+		vector[index] = value;
 	}
 	
 	/*
@@ -151,6 +169,17 @@ public class Vector {
 	 * ************************************************************************
 	 */
 	
+	/*
+	 * ************************************************************************
+	 * Manipulators
+	 * ************************************************************************
+	 */
+	
+	public void fill (int value) {
+		vector = ArrayTools.fill(vector, value);
+	}
+	
+	
 	/**
 	 * @deprecated
 	 * @return
@@ -184,6 +213,22 @@ public class Vector {
 			}
 		}
 		return result;
+	}
+	
+	public int sumOf() {
+		return ArrayTools.sum(vector);
+	}
+	
+	public int sumOf(int fromIndex, int toIndex) {
+		return ArrayTools.sum(vector,fromIndex,toIndex);
+	}
+	
+	public int getMax() {
+		return ArrayTools.maxOf(vector);
+	}
+	
+	public int getMin() {
+		return ArrayTools.minOf(vector);
 	}
 	
 	/*
