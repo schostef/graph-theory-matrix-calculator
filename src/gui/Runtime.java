@@ -42,15 +42,13 @@ public class Runtime {
 		int[][] m = {r1,r2,r3,r4,r5};
 		*/
 		
-		int[] r1 = {0,1,1,0,0,0,0,0};
-		int[] r2 = {1,0,0,1,0,0,0,0};
-		int[] r3 = {1,0,0,0,1,0,0,1};
-		int[] r4 = {0,1,0,0,1,0,1,0};
-		int[] r5 = {0,0,1,1,0,1,0,0};
-		int[] r6 = {0,0,0,0,1,0,1,1};
-		int[] r7 = {0,0,0,1,0,1,0,1};
-		int[] r8 = {0,0,1,0,0,1,1,0};
-		int[][] m = {r1,r2,r3,r4,r5,r6,r7,r8};
+		int[] r1 = {0,1,0,0,1,0};
+		int[] r2 = {1,0,1,0,1,1};
+		int[] r3 = {0,1,0,1,0,1};
+		int[] r4 = {0,0,1,0,0,0};
+		int[] r5 = {1,1,0,0,0,0};
+		int[] r6 = {0,1,1,0,0,0};
+		int[][] m = {r1,r2,r3,r4,r5,r6};
 		
 		Matrix ma = new Matrix(m);
 		Graph graph = new Graph(ma);
@@ -59,6 +57,7 @@ public class Runtime {
 		graph.initializePathMatrix();
 		graph.calculateDistancePathMatrix();
 		graph.calculateEccentricities();
+		graph.findBlocks();
 		System.out.println("Adjazenzmatrix: \n"+graph.getAdjacencyMatrix(1));
 		System.out.println("A^2: \n"+graph.getAdjacencyMatrix(2));
 		System.out.println("A^3: \n"+graph.getAdjacencyMatrix(3));

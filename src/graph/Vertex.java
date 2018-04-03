@@ -21,6 +21,7 @@ public class Vertex {
 	private boolean isIsolated = true;
 	private boolean isArticulation = false;
 	private boolean isCenter = false;
+	private boolean isVisited = false;
 	private Vertex[] neighbors; //Adjacent Vertices
 	private Edge[] edges; //Incident Edges
 
@@ -57,6 +58,21 @@ public class Vertex {
 	 * Getters
 	 * ************************************************************
 	 */
+	
+	public Edge[] getUnvisitedEdges() {
+		Edge[] edges = new Edge[0];
+		for (int i = 0; i < this.edges.length; i++) {
+			if(!this.edges[i].isVisited()) {
+				edges = GraphTools.push(edges, this.edges[i]);
+			}
+		}
+		
+		return edges;
+	}
+	
+	public boolean isArticulation() {
+		return isArticulation;
+	}
 
 	public boolean isCenter() {
 		return isCenter;
@@ -103,6 +119,10 @@ public class Vertex {
 		return null;
 	}
 	
+	public Edge getEdge(int index) {
+		return edges[index];
+	}
+	
 	/*
 	 * **************************************************************
 	 */
@@ -112,6 +132,14 @@ public class Vertex {
 	 * Setters
 	 * **************************************************************
 	 */	
+	
+	public void setVisited(boolean b) {
+		isVisited = b;
+	}
+	
+	public void setArticulation(boolean b) {
+		isArticulation = b;
+	}
 
 	public void setDescription(String description) {
 		this.description = description;
@@ -140,6 +168,8 @@ public class Vertex {
 	public void switchCenter() {
 		isCenter = !isCenter;
 	}
+	
+	
 	
 	/*
 	 * **************************************************************
@@ -237,7 +267,7 @@ public class Vertex {
 		for (int i = 0; i < edges.length; i++) {
 			text += edges[i].getName()+", ";
 		}
-		return "Vertex: " + name + ", Grad: "+ degree + ", Kanten: "+text + "Isoliert: "+isIsolated+ "Zentrum?: "+isCenter;
+		return "Vertex: " + name;
 	}
 	
 	/*

@@ -16,6 +16,7 @@ public class Edge {
 	private Vertex[] vertices = new Vertex[2]; //The vertices this Edge is connected to
 	private boolean isDirectional = false; //for a directional edge, mind the order: true = vertex[0] -> vertex[1]
 	private boolean isBridge = false;
+	private boolean isVisited = false;
 
 	/*
 	 * *****************************************************************************
@@ -72,6 +73,64 @@ public class Edge {
 	
 	public Vertex[] getVertices() {
 		return vertices;
+	}
+	
+	public boolean isVisited() {
+		return isVisited;
+	}
+	
+	public Vertex getOppositeVertex(Vertex v) {
+		if(vertices[0].getName() == v.getName()) {
+			return vertices[1];
+		}else if(vertices[1].getName() == v.getName()) {
+			return vertices[0];
+		}
+		
+		return null;
+	}
+	
+	public boolean hasVertex(Vertex vertex) {
+		if(vertices[0].getName() == vertex.getName() || 
+				vertices[1].getName() == vertex.getName()) {
+			return true;
+		}
+		return false;
+	}
+	
+	public boolean hasVertex(Vertex vertex1, Vertex vertex2) {
+		if(vertices[0].getName() == vertex1.getName()) {
+			if(vertices[1].getName() == vertex2.getName()) {
+				return true;
+			}
+		}
+		if(vertices[0].getName() == vertex2.getName()) {
+			if(vertices[1].getName() == vertex1.getName()) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public int getID() {
+		return id;
+	}
+	
+	/*
+	 * *****************************************************************************
+	 */
+	
+	/*
+	 * *****************************************************************************
+	 * Setters
+	 * *****************************************************************************
+	 */
+	
+	public void setVisited(boolean b) {
+		isVisited = b;
+	}
+	
+	public void setBridge(boolean b) {
+		isBridge = b;
 	}
 	
 	/*
