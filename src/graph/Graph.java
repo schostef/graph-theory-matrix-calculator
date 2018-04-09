@@ -471,8 +471,9 @@ public class Graph {
 			}
 			
 			//To find out if this is the largest possible circle,
-			//we look at each edge. Between the exit of the first edge and the entry of the second edge
-			//[
+			//we look at each edge. If the two Vertices inside the edge show up in the remaining edges and lead to unknown edges
+			//The circle might be extendable
+			//[a,b],[b,c][c,a] --> [a,d] [d,e] [e,b] --> --(delete [a,b])-- [a,d] [d,e] [e,b] [b,c] [c,a]
 			Vertex start = circleCollection[0].getOppositeVertex(startPoint);
 			Vertex end = circleCollection[circleCollection.length-1].getOppositeVertex(startPoint);
 			boolean startFound = false;
@@ -695,8 +696,8 @@ public class Graph {
 		
 		/*
 		 * 2. Mit der zuvor erstellten Liste, vergleiche die Knotennamen untereinander,
-		 * gibt es eine übereinstimmung, so handelt es sich um eine bestehende Komponente.
-		 * Gibt es keine Übereinstimmung, so wird eine neue Komponente erstellt.
+		 * gibt es eine ï¿½bereinstimmung, so handelt es sich um eine bestehende Komponente.
+		 * Gibt es keine ï¿½bereinstimmung, so wird eine neue Komponente erstellt.
 		 * Am Schluss haben wir eine Liste an Komponenten mit ihren Knotennamen: componentList
 		 */
 		int componentCounter = 0;
@@ -717,8 +718,8 @@ public class Graph {
 		}
 		
 		/*
-		 * 3. Sättigen der einzelnen Komponenten aus componentList. Dies müssen Teilgraphen von G sein.
-		 * Die Knoten und Kantenmengen dürfen keine neuen Objekte sein, sondern müssen Referenzen auf den Obergraph darstellen.
+		 * 3. Sï¿½ttigen der einzelnen Komponenten aus componentList. Dies mï¿½ssen Teilgraphen von G sein.
+		 * Die Knoten und Kantenmengen dï¿½rfen keine neuen Objekte sein, sondern mï¿½ssen Referenzen auf den Obergraph darstellen.
 		 */
 		this.components = new Subgraph[componentList.length];
 		for(int i = 0; i < componentList.length; i++) {
@@ -728,7 +729,7 @@ public class Graph {
 	}
 
 	/*
-	 * Sättige den bestehenden Obergraphen mit den Knotennamen in der Liste
+	 * Sï¿½ttige den bestehenden Obergraphen mit den Knotennamen in der Liste
 	 */
 	private Subgraph saturate(Vector vector) {
 		int[] vertexIndizes = new int[vector.size];
@@ -806,7 +807,7 @@ public class Graph {
 			text += edges[j]+"\n";
 		}
 		
-		text += "\n Exzentrizitäten: \n";
+		text += "\n Exzentrizitï¿½ten: \n";
 		for (int k = 0; k < vertexSum; k++) {
 			text += "Knoten: "+(k+1)+": "+eccentricity.getValueAt(k)+"\n";
 		}
@@ -824,6 +825,7 @@ public class Graph {
 		
 		text += "\n Componenten: \n";
 		for(int i = 0; i < components.length; i++) {
+			text += "Komponente " + (i+1) +": \n";
 			text += components[i];
 		}
 		
