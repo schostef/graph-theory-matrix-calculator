@@ -123,6 +123,19 @@ public class Vertex {
 		return edges[index];
 	}
 	
+	public Edge[] getAllEdges() {
+		return edges;
+	}
+	
+	public boolean hasEdge(Edge e) {
+		for (int i = 0; i< edges.length; i++) {
+			if(e.getID() == edges[i].getID()) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	/*
 	 * **************************************************************
 	 */

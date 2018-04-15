@@ -78,6 +78,16 @@ public class GraphTools {
 		return false;
 	}
 	
+	public static int countVertex(Edge[] arr, Vertex vertex) {
+		int counter = 0;
+		for (int i = 0; i < arr.length; i++) {
+			if(arr[i].hasVertex(vertex)) {
+				counter++;
+			}
+		}
+		return counter;
+	}
+	
 	/**
 	 * Increase the size of an array by 1
 	 * @param arr Input Array
@@ -141,6 +151,7 @@ public class GraphTools {
 		return false;
 	}
 	
+	
 	public static Vector[] expand(Vector[] arr) {
 		Vector[] ta = new Vector[arr.length + 1];
 		for (int i = 0; i < arr.length; i++) {
@@ -169,6 +180,8 @@ public class GraphTools {
 		}
 		return ta;
 	}
+
+	
 
 	
 }

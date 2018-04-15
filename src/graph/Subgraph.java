@@ -15,8 +15,15 @@ public class Subgraph extends Graph {
 		this.parentGraph = parentGraph;
 		this.vertices = vertices;
 		this.edges = edges;
-		this.adjacencyMatrizes = new Matrix[1];
+		this.adjacencyMatrizes = new Matrix[vertices.length];
 		this.adjacencyMatrizes[0] = adjacencyMatrix;
+		this.adjacencyMatrizes[0].vectorize();
+		this.vertexSum = adjacencyMatrizes[0].size;
+		this.edgeSum = this.adjacencyMatrizes[0].getSymmetricSum();
+		
+	}
+	
+	public Subgraph(Graph parentGraph, Matrix adjacencyMatrix) {
 		
 	}
 
@@ -24,6 +31,9 @@ public class Subgraph extends Graph {
 		
 	}
 	
+	public int getComponentAmount() {
+		return this.componentAmount;
+	}
 	
 	public String toString() {
 		String text = "";
@@ -36,5 +46,7 @@ public class Subgraph extends Graph {
 		
 		return text;
 	}
+
+	
 
 }

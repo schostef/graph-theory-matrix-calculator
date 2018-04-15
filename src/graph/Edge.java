@@ -75,6 +75,10 @@ public class Edge {
 		return vertices;
 	}
 	
+	public boolean isBridge() {
+		return isBridge;
+	}
+	
 	public boolean isVisited() {
 		return isVisited;
 	}

@@ -343,6 +343,18 @@ public class ArrayTools {
 		return sort(push(arr, v));
 	}
 	
+	public static int[] delete(int[] arr, int index) {
+		int[] ta = new int[arr.length-1];
+		int pos = 0;
+		for ( int i = 0; i < arr.length; i++) {
+			if(i != index) {
+				ta[pos] = arr[i];
+				pos++;
+			}
+		}
+		return ta;
+	}
+	
 	/*
 	 * *******************************************************************
 	 */

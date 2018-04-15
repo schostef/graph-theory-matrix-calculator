@@ -179,6 +179,10 @@ public class Vector {
 		vector = ArrayTools.fill(vector, value);
 	}
 	
+	public Vector remove(int index) {
+		return new Vector(ArrayTools.delete(vector,index));		
+	}
+	
 	
 	/**
 	 * @deprecated

@@ -81,6 +81,19 @@ public class Matrix {
 		vectorize(binMatrix);
 		
 	}
+	
+	public Matrix(Vector[] v) {
+		this.size = v[0].size;
+		matrix = new int[size][size];
+		verticalVectors = new Vector[size];
+		horizontalVectors = new Vector[size];
+		
+		for(int i = 0; i < size; i++) {
+			verticalVectors[i] = new Vector(v[i].getVector());
+			horizontalVectors[i] = new Vector(v[i].getVector());
+			matrix[i] = v[i].getVector();
+		}
+	}
 
 	/*
 	 * *****************************************************************
@@ -287,6 +300,7 @@ public class Matrix {
 		}
 	}
 	
+	
 	public Matrix shrinkByIndizes(int[] vertexIndizes) {
 		Matrix shrinkedMatrix = new Matrix(vertexIndizes.length);
 		for (int i = 0; i < vertexIndizes.length; i++) {
@@ -297,6 +311,23 @@ public class Matrix {
 		return shrinkedMatrix;
 	}
 	
+	
+	public Matrix removeCross(int index) {
+		Vector[] shortenedVectors = new Vector[size-1];
+		int pos = 0;
+		if(isSymmetric) {
+			for(int i = 0; i< size; i++) {
+				if(i != index) {
+					shortenedVectors[pos] = horizontalVectors[i].remove(index);
+					pos++;
+				}
+			}
+		}
+		
+		Matrix tempMatrix = new Matrix(shortenedVectors);
+		return tempMatrix;
+		
+	}
 	/*
 	 * ******************************************************************
 	 */
@@ -373,6 +404,21 @@ public class Matrix {
 		}
 		
 		return result;
+	}
+	
+	public int getSymmetricSum() {
+		if(isSymmetric) {
+			int row = 0;
+			int column = 0;
+			int sum = 0;
+			while(row < size) {
+				column = row;
+				sum += horizontalVectors[row].sumOf(column, size);
+				row++;
+			}
+			return sum;			
+		}
+		return -1;
 	}
 	
 	public Vector vectorHighestValues(boolean isHorizontal) {

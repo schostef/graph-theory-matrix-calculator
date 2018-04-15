@@ -8,6 +8,8 @@
  */
 
 package graph;
+import java.time.chrono.IsoChronology;
+
 import arraytools.ArrayTools;
 import arraytools.GraphTools;
 import matrix.*;
@@ -17,18 +19,19 @@ public class Graph {
 	//Store vertices and edges here
 	protected Vertex[] vertices;
 	protected Edge[] edges;
+	private Edge[] eulerPath;
 	protected Matrix[] adjacencyMatrizes; //Adjacency Matrix at Index 0, exponentialmatrizes onwards, where Index + 1 = exponent
-	private Matrix pathMatrix;
-	private Matrix distanceMatrix;
-	private Matrix controlMatrix;
-	private Vector eccentricity;
-	private int radius,diameter;
-	private boolean isCohesive = true;
-	private char name = 'G';
+	protected Matrix pathMatrix;
+	protected Matrix distanceMatrix;
+	protected Matrix controlMatrix;
+	protected Vector eccentricity;
+	protected int radius,diameter;
+	protected boolean isCohesive = true;
+	protected char name = 'G';
 	protected int vertexSum = 0; //total number of Vertices
 	protected int edgeSum = 0; //Total number of edges
-	private Subgraph[] components;
-	private int componentAmount = 1;
+	protected Subgraph[] components;
+	protected int componentAmount = 1;
 
 	/*
 	 * ************************************************************************
@@ -80,6 +83,36 @@ public class Graph {
 	 * Getters
 	 * ************************************************************************
 	 */
+	
+	public Vertex[] getArticulations() {
+		Vertex[] arts = new Vertex[0];
+		for (int i = 0; i < vertices.length; i++) {
+			if(vertices[i].isArticulation()) {
+				arts = GraphTools.push(arts, vertices[i]);
+			}
+		}
+		
+		return arts;
+	}
+	
+	public Edge[] getBridges() {
+		Edge[] bridges = new Edge[0];
+		for(int i = 0; i < edges.length; i++) {
+			if(edges[i].isBridge()) {
+				bridges = GraphTools.push(bridges, edges[i]);
+			}
+		}
+		return bridges;
+	}
+	
+	public int getIndexOf(int vertexName) {
+		for(int i = 0; i < vertices.length; i++) {
+			if(vertices[i].getName() == vertexName) {
+				return i;
+			}
+		}
+		return -1;
+	}
 	
 	/**
 	 * Get the Vertex Object by providing it's unique name
@@ -260,291 +293,197 @@ public class Graph {
 		v2.addEdge(tedge[edges.length]);
 		edges = tedge;
 		edgeSum++;
+	}	
+	
+	public Subgraph removeVertex(Vertex v) {
+		// get the incident edges of v
+		Edge[] tempEdges = new Edge[edges.length-v.getDegree()];
+		int currentIndex = 0;
+		for(int i = 0; i < edges.length; i++) {
+			if(!v.hasEdge(edges[i])) {
+				tempEdges[currentIndex] = edges[i];
+				currentIndex++;
+			}
+		}
+		
+		currentIndex = 0;
+		Vertex[] tempVertices = new Vertex[vertexSum-1];
+		for(int i = 0; i < vertices.length; i++) {
+			if(vertices[i].getName() != v.getName()) {
+				tempVertices[currentIndex]=vertices[i];
+				currentIndex++;
+			}
+		}
+		
+		Matrix tempMatrix = adjacencyMatrizes[0].removeCross(v.getName()-1);
+		return new Subgraph(this,tempVertices,tempEdges,tempMatrix);
 	}
 	
-	public void findBlocks() {
-		//Set everything to not checked
-		setAllVerticesVisited(false);
-		setAllEdgesVisited(false);
-		//We define vertexStart as all unvisited Vertices and retrieve them from the graph
-		//We define edgesStart as all unchecked Edges and retrieve them from the Graph
-		Vertex[] vertexStart = new Vertex[vertices.length];
-		Edge[] edgesStart = new Edge[edges.length];
-		for(int i = 0; i < vertexStart.length; i++) {
-			vertexStart[i] = vertices[i];
-		}
-		for(int i = 0 ; i < edgesStart.length; i++) {
-			edgesStart[i] = edges[i];
-		}
-		//We also define vTransfer as finished Vertices where we will move visited Vertices from vertexStart to vTransfer
-		Vertex[] vTransfer = new Vertex[0];
-		// Variable eTransfer will store our Edges from edgesStart as we build our path
-		Edge[] eTransfer = new Edge[0];
-		Edge[] eCircle = new Edge[0];
-		// The Path array circles will store circles, that are found
-		Path[] circles = new Path[0];
-		// We also store articulations and bridges in their separate Arrays
-		Vertex[] articulations = new Vertex[0];
-		Edge[] bridges = new Edge[0];
+	public void findArticulations() {
+		Subgraph[] subgraphs = new Subgraph[vertices.length];
 		
-		//First get all isolated and degree 1 Vertices
-		Vertex[] isolatedVertices = getIsolatedVertices();
-		Vertex[] degreeOneVertices = getVerticesByDegree(1);
-		
-		// Isolated Vertices can be removed from vertexStart
-		// Their isolated information is already stored in the Vertex class
-		// The blocks calculation will happen last
-		if(isolatedVertices.length > 0) {
-			for (int i = 0; i < isolatedVertices.length; i++) {
-				vertexStart = GraphTools.delete(vertexStart, isolatedVertices[i]);
+		for (int i = 0; i < vertices.length; i++) {
+			subgraphs[i] = removeVertex(vertices[i]);
+			subgraphs[i].calculateAll();
+			if(subgraphs[i].getComponentAmount() > this.componentAmount) {
+				vertices[i].setArticulation(true);
 			}
 		}
-		
-		// The Edges of degree 1 Vertices can be set as bridges
-		// The vertex and the bridge can be set as visited
-		// A bridge always ends with Articulations, except the Bridgehead is degree 1
-		if(degreeOneVertices.length > 0) {
-			for (int i = 0; i < degreeOneVertices.length; i++) {
-				// There can only be one Neighbor and one path,
-				// therefore we can directly access the path and the neighbor
-				degreeOneVertices[i].getEdge(degreeOneVertices[i].getNeighbors()[0]).setVisited(true);
-				degreeOneVertices[i].getEdge(degreeOneVertices[i].getNeighbors()[0]).setBridge(true);
-				if(degreeOneVertices[i].getNeighbors()[0].getDegree() > 1) {
-					degreeOneVertices[i].getNeighbors()[0].setArticulation(true);
-				}
-				//and remove the edges from startingEdges and remove the degree 1 vertex
-				//as it won't make a circle at any time
-				//the bridge will be added to bridges
-				bridges = GraphTools.push(bridges, degreeOneVertices[i].getEdge(degreeOneVertices[i].getNeighbors()[0]));
-				vertexStart = GraphTools.delete(vertexStart, degreeOneVertices[i]);
-				edgesStart = GraphTools.delete(edgesStart, degreeOneVertices[i].getEdge(degreeOneVertices[i].getNeighbors()[0]));
-			}
-		}
-		
-		//We now initialize the first Vertex of Degree >= 2, that is not an Articulation as the root Vertex
-		int z = 0;
-		while(getVerticesByDegreeHigherThan(1)[z].isArticulation()) {
-			z++;
-		}
-		Vertex root = getVerticesByDegreeHigherThan(1)[z];
-		
-		//The first run won't make a circle so we initialize:
-		
-		//Put root into vTransfer
-		vTransfer = GraphTools.push(vTransfer, root);
-		vertexStart = GraphTools.delete(vertexStart, root);
-		
-		//Put all it's edges into eTransfer
-		//And all the neighbor Vertices into vTransfer
-		for(int i = 0; i < root.getDegree(); i++) {
-			eTransfer = GraphTools.push(eTransfer, root.getEdge(root.getNeighbors()[i]));
-			vTransfer = GraphTools.push(vTransfer, root.getNeighbors()[i]);
-			//And remove them from edgesStart and vertexStart
-			edgesStart = GraphTools.delete(edgesStart, root.getEdge(root.getNeighbors()[i]));
-			vertexStart = GraphTools.delete(vertexStart, root.getNeighbors()[i]);
-			
-			
-		}
-		//We also store the pathLength seperately
-		int circleNumber = 0;
-		
-		//From now on we loop through the vTransfer Vertices and move their neighbors
-		//and their edges to the Transfer Variables
-		//The loop will stop, when everything has been moved
-		while(vertexStart.length > 0 || edgesStart.length > 0) {
-			
-			// first we get all the next neighbors that are not known out of vertexStart
-			for(int i = 0; i < vTransfer.length; i++) {
-				for(int j = 0; j < vTransfer[i].getNeighbors().length; j++) {
-					//If the neighbor is still in vertexStart
-					if(GraphTools.hasValue(vertexStart, vTransfer[i].getNeighbors()[j])) {
-						//and transfer the Vertex from vertexStart to vTransfer
-						vTransfer = GraphTools.push(vTransfer, vTransfer[i].getNeighbors()[j]);
-						vertexStart = GraphTools.delete(vertexStart, vTransfer[i].getNeighbors()[j]);						
-					}
-				}				
-			}
-			
-			//after that get all Edges that are connected to Vertices in vTransfer
-			//Transfer it's edges to from edgeStart to eTransfer
-			for(int i = 0; i < vTransfer.length; i++) {
-				for(int j = 0; j < vTransfer[i].getDegree(); j++) {
-					if(GraphTools.hasValue(edgesStart, vTransfer[i].getEdge(j))) {
-						eTransfer = GraphTools.push(eTransfer, vTransfer[i].getEdge(j));
-						edgesStart = GraphTools.delete(edgesStart, vTransfer[i].getEdge(j));
-					}
-				}
-				
-			}
-			
-			//We will now check for circles
-			//First we will make a counter for each Vertex in vTransfer
-			int[] counter = new int[vTransfer.length];
-			
-			//We only consider edges that connect vertices, which are in the vTransfer List
-			for (int i = 0; i < eTransfer.length; i++) {
-				for(int j = 0; j < vTransfer.length; j++) {
-					if(eTransfer[i].getVertices()[0].getName() == vTransfer[j].getName()) {
-						for(int k = 0; k < vTransfer.length; k++) {
-							if(eTransfer[i].getVertices()[1].getName() == vTransfer[k].getName()) {
-								counter[j]++;
-								counter[k]++;
-							}
-						}
-					}
-				}				
-			}
-			//All edges that will form circles will be moved to another array
-			Edge[] possiblePaths = new Edge[0];
-			boolean edgeFound = false;
-			int startVertex = 0;
-			int endVertex = 0;
-			for (int i = 0; i < eTransfer.length; i++) {
-				for (int j = 0; j < counter.length && eTransfer.length > 0; j++) {
-					for (int k = j+1; k < counter.length && eTransfer.length > 0; k++) {
-						if(eTransfer[i].hasVertex(vTransfer[j], vTransfer[k])){
-							possiblePaths = GraphTools.push(possiblePaths, eTransfer[i]);
-							eTransfer = GraphTools.delete(eTransfer, eTransfer[i]);
-							j = 0;
-							k = 0;
-						}
-					}
+		// For every Vertex, remove the vertex.
+		// Except for isolated ones.
+		// check components of the subgraph
+		// if it's more than before
+		// mark the vertex as articulation
+	}
+	
+	public void findBridges() {
+		Subgraph[] subgraphs = new Subgraph[edgeSum];
+		for (int i = 0; i < edgeSum; i++) {
+			Edge[] edges = new Edge[edgeSum-1];
+			int pos = 0;
+			for(int j = 0; j < edgeSum; j++) {
+				if(j != i) {
+					edges[pos] = this.edges[j];
+					pos++;
 				}
 			}
+			subgraphs[i] = span(edges);
+			subgraphs[i].calculateAll();
+			if(subgraphs[i].getComponentAmount() > this.componentAmount) {
+				this.edges[i].setBridge(true);
+			}
 			
-			//Start at the first edge
-			Vertex startPoint = possiblePaths[0].getVertices()[0];
-			Vertex endPoint = possiblePaths[0].getVertices()[1];
-			Edge[] circleCollection = {possiblePaths[0]};
-			//possiblePaths = GraphTools.delete(possiblePaths, possiblePaths[0]);
-			int position = 0;
-			//We keep track of the positioner and it's findings , pathLog[position][vertexName]
-			int[][] pathLog = new int[possiblePaths.length][1];
-			boolean nextFound = false;
-			position = 1;
-			//find the next Edge to connect to, keep repeating until startPoint is reached
-			while(startPoint.getName() != endPoint.getName()) {
-				for(int i = 0; i < pathLog.length; i++) {
-					if(pathLog[i][0] == endPoint.getName()) {
-						position = i+1;
-						circleCollection = null;
-						circleCollection = new Edge[1];
-						circleCollection[0] = possiblePaths[0];
-						endPoint = possiblePaths[0].getVertices()[1];	
-						pathLog = null;
-						pathLog = new int[possiblePaths.length][1];
-					}
-				}
-				nextFound = false;
-				while(!nextFound) {
-					if (possiblePaths[position].hasVertex(endPoint)) {
-						// If any Vertex other than the starting point shows up a second time,
-						// we either found a shorter circle or an articulation
-						// At this point we need to revert back to the crossed vertex and keep looking.
-						//Otherwise keep going to the next edge
-						pathLog[position][0]=endPoint.getName();
-						endPoint = possiblePaths[position].getOppositeVertex(endPoint);
-						circleCollection = GraphTools.push(circleCollection, possiblePaths[position]);
-						// possiblePaths = GraphTools.delete(possiblePaths, possiblePaths[position]);
-						nextFound = true;
-						if(position < possiblePaths.length-1) {
-							position++;
-							
-						}else {
-							position = 1;
-						}
-						
+		}
+	}
+	
+	public int getBridgeAmount() {
+		int bridgeCounter = 0;
+		for (int i = 0; i < edgeSum; i++) {
+			if(edges[i].isBridge()) {
+				bridgeCounter++;
+			}
+		}
+		return bridgeCounter;
+	}
+	
+	public int getArticulationAmount() {
+		int articulationCounter = 0;
+		for (int i = 0; i < vertexSum; i++) {
+			if(vertices[i].isArticulation()) {
+				articulationCounter++;
+			}
+		}
+		return articulationCounter;
+	}
+	
+	public void findEulerPath() {
+		int startingVertex = -1;
+		int endingVertex = -1;
+		if(isEulerClosed()) {
+			startingVertex = 1;
+			endingVertex = 1;
+		}else if(isEulerOpen()) {
+			int vertexCount = 1;
+			while(startingVertex == -1 || endingVertex == -1) {
+				if(vertices[vertexCount].getDegree()%2 != 0) {
+					if (startingVertex < 0) {
+						startingVertex = vertices[vertexCount].getName();
 					}else {
-						if(position < possiblePaths.length-1) {
-							position++;
-							
+						endingVertex = vertices[vertexCount].getName();
+					}
+				}
+				vertexCount++;
+			}
+		}
+		
+		if(startingVertex > 0) {
+			// Copy all Edges
+			Edge[] eulerBuilder = new Edge[edgeSum];
+			for(int i = 0; i < edgeSum; i++) {
+				eulerBuilder[i] = edges[i];
+			}
+			
+			//Pick the first edge at startingVertex
+			int vertindex = getIndexOf(startingVertex);
+			eulerPath = new Edge[edgeSum];
+			eulerPath[0] = vertices[vertindex].getEdge(0);
+			
+			//delete it from the eulerBuilder
+			eulerBuilder = GraphTools.delete(eulerBuilder, eulerPath[0]);
+			
+			//Build a path until there are no edges left in the eulerBuilder
+			Vertex pathPosition = eulerPath[0].getOppositeVertex(vertices[getIndexOf(startingVertex)]);
+			int pathLength = 1;
+			while(eulerBuilder.length > 1) {
+				boolean nextEdge = false;
+				int edgeCounter = 0;
+				while(!nextEdge) {
+					if(GraphTools.hasValue(eulerBuilder, pathPosition.getEdge(edgeCounter))) {
+						if(pathPosition.getEdge(edgeCounter).getOppositeVertex(pathPosition) == getVertex(endingVertex) && 
+								GraphTools.countVertex(eulerBuilder,getVertex(endingVertex)) <= 1) {
+							edgeCounter++;
 						}else {
-							position = 1;
+							eulerPath[pathLength] = pathPosition.getEdge(edgeCounter);
+							eulerBuilder = GraphTools.delete(eulerBuilder, pathPosition.getEdge(edgeCounter));
+							pathPosition = eulerPath[pathLength].getOppositeVertex(pathPosition);
+							pathLength++;
+							nextEdge = true;
 						}
+					}else {
+						edgeCounter++;
 					}
 				}
 			}
-			//circle found!
-			// remove all edges that form the circle from possiblePaths
-			for(int i = 0; i < circleCollection.length; i++) {
-				possiblePaths = GraphTools.delete(possiblePaths, circleCollection[i]);
-			}
-			
-			//To find out if this is the largest possible circle,
-			//we look at each edge. If the two Vertices inside the edge show up in the remaining edges and lead to unknown edges
-			//The circle might be extendable
-			//[a,b],[b,c][c,a] --> [a,d] [d,e] [e,b] --> --(delete [a,b])-- [a,d] [d,e] [e,b] [b,c] [c,a]
-			Vertex start = circleCollection[0].getOppositeVertex(startPoint);
-			Vertex end = circleCollection[circleCollection.length-1].getOppositeVertex(startPoint);
-			boolean startFound = false;
-			boolean endFound = false;
-			for(int i = 0; i < possiblePaths.length && startFound && endFound; i++) {
-				if(possiblePaths[i].hasVertex(start)) {
-					startFound = true;
-				}
-				
-				if(possiblePaths[i].hasVertex(end)) {
-					endFound = true;
-				}
-			}
-			
-			/*
-			
-			// We start at the first Vertex, that has a count of >= 2
-			int position = Integer.MIN_VALUE;
-			for (int i = 0; i < counter.length && position < 0; i++) {
-				if(counter[i] >= 2) {
-					position = i;
-				}
-			}
-			// We get the first edge, that has this vertex inside
-			for (int i = 0; i < eTransfer.length; i++) {
-				if(eTransfer[i].hasVertex(vTransfer[position])) {
-					
-				}
-			}
-			
-			// get to the next position along the edge
-			// and find the next edge, that has the vertex
-			// this will be done, until a circle is found
-			// Now we can start constructing circles
-			
-			boolean circleFound = false;
-			
-			
-			while(!circleFound) {
-				if(counter[position] >= 2) {
-					possiblePaths = GraphTools.push(possiblePaths, e)
-				}
-			}
-			
-			//With the counter we sort out all Vertices that have a count of lesser than 2
-			for(int i = 0; i < counter.length; i++) {
-				if(counter[i] < 2) {
-					
-				}
-			}
-			//Now we have all Edges that form a circle in the eCircle Array
-			//We can remove these Edges from the eTransfer
-			for (int i = 0; i < eCircle.length; i++) {
-				eTransfer = GraphTools.delete(eTransfer, eCircle[i]);
-			}
-			*/
-			
-			
-			
-			
+			eulerPath[pathLength] = eulerBuilder[0];
 		}
 		
-		
-		
-		
-
 	}
 	
-
+	public boolean isEulerClosed() {
+		int unevenDegreeCounter = 0;
+		int vertexCount = 0;
+		if(isCohesive) {
+			while(unevenDegreeCounter == 0) {
+				if(vertexCount >= vertexSum) {
+					return true;
+				}
+				if(vertices[vertexCount].getDegree()%2 != 0) {
+					unevenDegreeCounter++;
+				}
+				vertexCount++;
+				
+			}
+		}
+		return false;
+	}
 	
-
+	public boolean isEulerOpen() {
+		int unevenDegreeCounter = 0;
+		int vertexCount = 0;
+		if(isCohesive && !isEulerClosed()) {
+			while(unevenDegreeCounter <= 2) {
+				if(vertexCount >= vertexSum) {
+					return true;
+				}
+				if(vertices[vertexCount].getDegree()%2 != 0) {
+					unevenDegreeCounter++;
+				}
+				vertexCount++;
+				
+			}
+		}
+		return false;
+	}
+	
+	public void calculateBlocks() {
+		
+		//Start with articulations
+		//Create a new subgraph with each vertex removed
+		for (int i = 0; i < vertexSum; i++) {
+			
+		}
+	}
+	
 	
 
 	/*
@@ -637,7 +576,7 @@ public class Graph {
 		int pathlength = 2;
 		do {
 			lastControlMatrix = null;
-			lastControlMatrix = new Matrix(controlMatrix.getBinMatrix());;
+			lastControlMatrix = new Matrix(controlMatrix.getBinMatrix());
 			for(int vector = 0; vector < vertexSum; vector++) {
 				for (int position = 0; position < vertexSum; position++) {
 					if(!controlMatrix.getBinMatrix()[vector][position]) {
@@ -676,7 +615,7 @@ public class Graph {
 		
 	}
 	
-	private void calculateComponents() {
+	protected void calculateComponents() {
 		/*
 		 * 1. aus der Wegmatrix heraus erstelle eine Liste der Knotennamen, 
 		 * die miteinander pro Zeile verbunden sind
@@ -686,7 +625,7 @@ public class Graph {
 		for (int vector = 0; vector < vertexSum; vector++) {
 			for (int position = 0; position < vertexSum; position++) {
 				if(controlMatrix.getBinMatrix()[vector][position]) {
-					vertexList = ArrayTools.push(vertexList, position+1);
+					vertexList = ArrayTools.push(vertexList, vertices[position].getName());
 				}
 			}
 			vertexConnections[vector] = new Vector(vertexList);
@@ -721,20 +660,40 @@ public class Graph {
 		 * 3. Sï¿½ttigen der einzelnen Komponenten aus componentList. Dies mï¿½ssen Teilgraphen von G sein.
 		 * Die Knoten und Kantenmengen dï¿½rfen keine neuen Objekte sein, sondern mï¿½ssen Referenzen auf den Obergraph darstellen.
 		 */
-		this.components = new Subgraph[componentList.length];
-		for(int i = 0; i < componentList.length; i++) {
+		this.componentAmount = componentList.length;
+		this.components = new Subgraph[componentAmount];
+		for(int i = 0; i < componentAmount; i++) {
 			this.components[i] = saturate(componentList[i]);
 		}
 		
 	}
+	
+	/*
+	 * **************************************************************************************
+	 * Combined Methods
+	 * **************************************************************************************
+	 */
+	
+	public void calculateAll() {
+		calculateExponentialMatrizes();
+		initializeDistanceMatrix();
+		initializePathMatrix();
+		calculateDistancePathMatrix();
+		calculateEccentricities();
+		
+	}
+	
+	/*
+	 * **************************************************************************************
+	 */
 
 	/*
 	 * Sï¿½ttige den bestehenden Obergraphen mit den Knotennamen in der Liste
 	 */
-	private Subgraph saturate(Vector vector) {
+	protected Subgraph saturate(Vector vector) {
 		int[] vertexIndizes = new int[vector.size];
 		for (int i = 0; i < vector.size; i++) {
-			vertexIndizes[i] = vector.getValueAt(i)-1; 
+			vertexIndizes[i] = getIndexOf(vector.getValueAt(i)); 
 		}
 		Matrix subAdjacencyMatrix = adjacencyMatrizes[0].shrinkByIndizes(vertexIndizes);
 		Vertex[] subVertices = new Vertex[subAdjacencyMatrix.size];
@@ -763,8 +722,19 @@ public class Graph {
 		return saturatedSubgraph;
 	}
 	
-	private Subgraph spann(Vector vector) {
-		return null;
+	private Subgraph span(Edge[] tree) {
+		Matrix subMatrix = new Matrix(vertexSum);
+		int row = 0;
+		int column = 0;
+		for (int i = 0; i < tree.length; i++) {
+			row = getIndexOf(tree[i].getVertices()[0].getName());
+			column = getIndexOf(tree[i].getVertices()[1].getName());
+			subMatrix.setValueAt(row, column, 1);
+			subMatrix.setValueAt(column, row, 1);
+		}
+		
+		Subgraph spanningSubgraph = new Subgraph(this,vertices,tree,subMatrix);
+		return spanningSubgraph;
 	}
 
 	public void calculateEccentricities() {
@@ -783,6 +753,7 @@ public class Graph {
 		}
 		
 	}
+	
 	
 	
 	/*
@@ -827,6 +798,20 @@ public class Graph {
 		for(int i = 0; i < components.length; i++) {
 			text += "Komponente " + (i+1) +": \n";
 			text += components[i];
+		}
+		
+		text += "\n Artikulationen: \n";
+		text += getArticulationAmount() +"\n";
+		Vertex[] arts = getArticulations();
+		for(int i = 0; i < arts.length; i++) {
+			text += arts[i];
+		}
+		
+		text += "\n\n Brücken: \n";
+		text += getBridgeAmount() + "\n";
+		Edge[] bridges = getBridges();
+		for (int i = 0; i < bridges.length; i++) {
+			text += bridges[i];
 		}
 		
 		return text;
