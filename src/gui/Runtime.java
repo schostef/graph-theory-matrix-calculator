@@ -3,11 +3,29 @@ package gui;
 import arraytools.*;
 import graph.Graph;
 import matrix.*;
+
+import java.awt.EventQueue;
 import java.util.Random;
 
-public class Runtime {
+import javax.swing.JFrame;
 
+public class Runtime{
+
+	
+
+	
 	public static void main(String[] args) {
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					Window window = new Window();
+					window.setVisible(true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		
 		/*
 		Graph graph = new Graph();
 		graph.addVertex();
@@ -97,7 +115,11 @@ public class Runtime {
 		System.out.println(bm);
 		*/
 		
+
+		
 		
 	}
+	
+	
 
 }
