@@ -772,23 +772,30 @@ public class Graph {
 		String text = "";
 		
 		text += "Zusammenhängend: \t";
-		if(isCohesive)
+		if(isCohesive) {
 			text += "Ja";
-		else
-			text += "Nein";
-		
-		text += "\n \n Radius: \t"+radius;
-		text += "\n \n Durchmesser: \t" + diameter;
-		
-		text += "\n \n Zentrum: {";
-		for (int l = 0; l < vertexSum; l++) {
-			if(vertices[l].isCenter()) {
-				text += vertices[l].getName() + ",";
+			text += "\n \n Radius: \t"+radius;
+			text += "\n \n Durchmesser: \t" + diameter;
+			
+			text += "\n \n Zentrum: {";
+			for (int l = 0; l < vertexSum; l++) {
+				if(vertices[l].isCenter()) {
+					text += vertices[l].getName() + ",";
+				}
 			}
+			text += "}";
+			if(isEulerClosed())
+				text += "\n \n Geschlossener Eulerscher Weg: \n{";
+			else
+				text += "\n \n Offener Eulerscher Weg: \n{";
+			for(Edge e : eulerPath) {
+				text += e+" , ";
+			}
+			text += "}";
+		}else {
+			text += "Nein";
+			text += "\n \n Anzahl Komponenten: " + componentAmount;
 		}
-		text += "}";
-		
-		text += "\n \n Anzahl Komponenten: " + componentAmount;
 		
 		text += "\n \n Artikulationen: "+getArticulationAmount()+"\n{";
 		Vertex[] arts = getArticulations();
@@ -802,16 +809,9 @@ public class Graph {
 		for (int i = 0; i < bridges.length; i++) {
 			text += bridges[i]+",";
 		}
-		text += "} \n \n";
-		
-		if(isEulerClosed())
-			text += "Geschlossener Eulerscher Weg: \n{";
-		else
-			text += "Offener Eulerscher Weg: \n{";
-		for(Edge e : eulerPath) {
-			text += e+" , ";
-		}
 		text += "}";
+		
+		
 		/*
 		String text = "";
 		for (int i = 0; i < vertices.length; i++) {
