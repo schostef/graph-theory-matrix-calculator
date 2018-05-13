@@ -46,6 +46,14 @@ public class Subgraph extends Graph {
 		
 		return text;
 	}
+	
+	public void calculateAll() {
+		calculateExponentialMatrizes();
+		initializeDistanceMatrix();
+		initializePathMatrix();
+		calculateDistancePathMatrix();
+		
+	}
 
 	
 

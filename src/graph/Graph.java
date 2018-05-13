@@ -159,10 +159,6 @@ public class Graph {
 		return diameter;
 	}
 	
-	public int getCenter() {
-		
-	}
-	
 	private Vertex[] getIsolatedVertices() {
 		Vertex[] isolatedVertices = new Vertex[0];
 		for(int i = 0; i < vertices.length; i++) {
@@ -680,6 +676,9 @@ public class Graph {
 		initializePathMatrix();
 		calculateDistancePathMatrix();
 		calculateEccentricities();
+		findArticulations();
+		findBridges();
+		findEulerPath();
 		
 	}
 	
@@ -771,6 +770,50 @@ public class Graph {
 	
 	public String toString() {
 		String text = "";
+		
+		text += "Zusammenhängend: \t";
+		if(isCohesive)
+			text += "Ja";
+		else
+			text += "Nein";
+		
+		text += "\n \n Radius: \t"+radius;
+		text += "\n \n Durchmesser: \t" + diameter;
+		
+		text += "\n \n Zentrum: {";
+		for (int l = 0; l < vertexSum; l++) {
+			if(vertices[l].isCenter()) {
+				text += vertices[l].getName() + ",";
+			}
+		}
+		text += "}";
+		
+		text += "\n \n Anzahl Komponenten: " + componentAmount;
+		
+		text += "\n \n Artikulationen: "+getArticulationAmount()+"\n{";
+		Vertex[] arts = getArticulations();
+		for(int i = 0; i < arts.length; i++) {
+			text += arts[i]+",";
+		}
+		text += "}";
+		
+		text += "\n \n Brücken: "+getBridgeAmount()+"\n{";
+		Edge[] bridges = getBridges();
+		for (int i = 0; i < bridges.length; i++) {
+			text += bridges[i]+",";
+		}
+		text += "} \n \n";
+		
+		if(isEulerClosed())
+			text += "Geschlossener Eulerscher Weg: \n{";
+		else
+			text += "Offener Eulerscher Weg: \n{";
+		for(Edge e : eulerPath) {
+			text += e+" , ";
+		}
+		text += "}";
+		/*
+		String text = "";
 		for (int i = 0; i < vertices.length; i++) {
 			text += vertices[i]+"\n";
 		}
@@ -814,6 +857,8 @@ public class Graph {
 			text += bridges[i];
 		}
 		
+		return text;
+		*/
 		return text;
 	}
 	

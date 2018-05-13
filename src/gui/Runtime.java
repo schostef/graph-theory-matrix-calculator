@@ -1,8 +1,6 @@
 package gui;
 
-import arraytools.*;
-import graph.Graph;
-import matrix.*;
+
 
 import java.awt.EventQueue;
 import java.util.Random;
@@ -51,13 +49,14 @@ public class Runtime{
 		System.out.println(graph.getAdjacencyMatrix(1));
 		*/
 		
-		
+		/*
 		int[] r1 = {0,1,1,1,1};
 		int[] r2 = {1,0,1,1,0};
 		int[] r3 = {1,1,0,1,1};
 		int[] r4 = {1,1,1,0,1};
 		int[] r5 = {1,0,1,1,0};
 		int[][] m = {r1,r2,r3,r4,r5};
+		*/
 		
 		
 		
@@ -78,7 +77,7 @@ public class Runtime{
 		int[][] m = {r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11,r12,r13};
 		*/
 		
-		
+		/*
 		Matrix ma = new Matrix(m);
 		Graph graph = new Graph(ma);
 		graph.calculateExponentialMatrizes();
