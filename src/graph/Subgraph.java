@@ -15,10 +15,14 @@ public class Subgraph extends Graph {
 		this.parentGraph = parentGraph;
 		this.vertices = vertices;
 		this.edges = edges;
-		this.adjacencyMatrizes = new Matrix[vertices.length];
+		this.vertexSum = vertices.length;
+		if(vertexSum > 2)
+			adjacencyMatrizes = new Matrix[vertexSum -1];
+		else
+			adjacencyMatrizes = new Matrix[2];
+		//this.adjacencyMatrizes = new Matrix[vertices.length-1];
 		this.adjacencyMatrizes[0] = adjacencyMatrix;
 		this.adjacencyMatrizes[0].vectorize();
-		this.vertexSum = adjacencyMatrizes[0].size;
 		this.edgeSum = this.adjacencyMatrizes[0].getSymmetricSum();
 		
 	}

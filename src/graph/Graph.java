@@ -52,7 +52,10 @@ public class Graph {
 	public Graph(Matrix m) {
 		reinitialize();
 		drawFromMatrix(m);
-		adjacencyMatrizes = new Matrix[vertexSum -1];
+		if(vertexSum > 2)
+			adjacencyMatrizes = new Matrix[vertexSum -1];
+		else
+			adjacencyMatrizes = new Matrix[1];
 		adjacencyMatrizes[0] = m;
 		
 	}
@@ -292,7 +295,7 @@ public class Graph {
 	}	
 	
 	public Subgraph removeVertex(Vertex v) {
-		// get the incident edges of v
+		// remove the incident edges of v
 		Edge[] tempEdges = new Edge[edges.length-v.getDegree()];
 		int currentIndex = 0;
 		for(int i = 0; i < edges.length; i++) {
@@ -318,11 +321,14 @@ public class Graph {
 	public void findArticulations() {
 		Subgraph[] subgraphs = new Subgraph[vertices.length];
 		
+		//Only check if Vertex is not isolated
 		for (int i = 0; i < vertices.length; i++) {
-			subgraphs[i] = removeVertex(vertices[i]);
-			subgraphs[i].calculateAll();
-			if(subgraphs[i].getComponentAmount() > this.componentAmount) {
-				vertices[i].setArticulation(true);
+			if(!vertices[i].isIsolated()) {
+				subgraphs[i] = removeVertex(vertices[i]);
+				subgraphs[i].calculateAll();
+				if(subgraphs[i].getComponentAmount() > this.componentAmount) {
+					vertices[i].setArticulation(true);
+				}
 			}
 		}
 		// For every Vertex, remove the vertex.
@@ -379,7 +385,7 @@ public class Graph {
 			startingVertex = 1;
 			endingVertex = 1;
 		}else if(isEulerOpen()) {
-			int vertexCount = 1;
+			int vertexCount = 0;
 			while(startingVertex == -1 || endingVertex == -1) {
 				if(vertices[vertexCount].getDegree()%2 != 0) {
 					if (startingVertex < 0) {
@@ -495,7 +501,9 @@ public class Graph {
 	 * Calculate all Exponentialmatrizes to the maximum Number of vertex count - 1
 	 */
 	public void calculateExponentialMatrizes() {
-		for(int i = 1; i < vertexSum; i++) {
+		//if there are less than 3 vertices, there is nothing to calculate
+		
+		for(int i = 1; i < vertexSum ; i++) {
 			adjacencyMatrizes[i-1] = adjacencyMatrizes[0].exponentiate(i);
 		}
 	}
@@ -573,20 +581,24 @@ public class Graph {
 		do {
 			lastControlMatrix = null;
 			lastControlMatrix = new Matrix(controlMatrix.getBinMatrix());
-			for(int vector = 0; vector < vertexSum; vector++) {
-				for (int position = 0; position < vertexSum; position++) {
-					if(!controlMatrix.getBinMatrix()[vector][position]) {
-						if(adjacencyMatrizes[pathlength-1].getValueAt(vector, position) != 0) {
-							pathMatrix.setValueAt(vector, position, 1);
-							distanceMatrix.setValueAt(vector, position, pathlength);
-							controlMatrix.setFlagAt(vector, position);
+			if(pathlength < vertexSum) {
+				
+				for(int vector = 0; vector < vertexSum; vector++) {
+					for (int position = 0; position < vertexSum; position++) {
+						if(!controlMatrix.getBinMatrix()[vector][position]) {
+							if(adjacencyMatrizes[pathlength-1].getValueAt(vector, position) != 0) {
+								pathMatrix.setValueAt(vector, position, 1);
+								distanceMatrix.setValueAt(vector, position, pathlength);
+								controlMatrix.setFlagAt(vector, position);
+							}
 						}
 					}
 				}
+				
 			}
 			pathlength++;
 			controlMatrix.vectorize(controlMatrix.getBinMatrix());
-		}while(!Matrix.isIdentical(controlMatrix, lastControlMatrix) && pathlength < vertexSum);
+		}while(!Matrix.isIdentical(controlMatrix, lastControlMatrix));
 		
 		if(!Matrix.isIdentical(controlMatrix, new Matrix(vertexSum,true))) {
 			for(int vector = 0; vector < vertexSum; vector++) {
@@ -771,7 +783,7 @@ public class Graph {
 	public String toString() {
 		String text = "";
 		
-		text += "Zusammenhängend: \t";
+		text += "Zusammenhï¿½ngend: \t";
 		if(isCohesive) {
 			text += "Ja";
 			text += "\n \n Radius: \t"+radius;
@@ -784,14 +796,18 @@ public class Graph {
 				}
 			}
 			text += "}";
-			if(isEulerClosed())
-				text += "\n \n Geschlossener Eulerscher Weg: \n{";
-			else
-				text += "\n \n Offener Eulerscher Weg: \n{";
-			for(Edge e : eulerPath) {
-				text += e+" , ";
+			if(eulerPath != null) {
+				if(isEulerClosed())
+					text += "\n \n Geschlossener Eulerscher Weg: \n{";
+				else
+					text += "\n \n Offener Eulerscher Weg: \n{";
+				for(Edge e : eulerPath) {
+					text += e+" , ";
+				}
+				text += "}";
+			}else {
+				text += "\n \n Kein Euler'scher Weg mÃ¶glich";
 			}
-			text += "}";
 		}else {
 			text += "Nein";
 			text += "\n \n Anzahl Komponenten: " + componentAmount;
@@ -804,7 +820,7 @@ public class Graph {
 		}
 		text += "}";
 		
-		text += "\n \n Brücken: "+getBridgeAmount()+"\n{";
+		text += "\n \n Brï¿½cken: "+getBridgeAmount()+"\n{";
 		Edge[] bridges = getBridges();
 		for (int i = 0; i < bridges.length; i++) {
 			text += bridges[i]+",";
@@ -850,7 +866,7 @@ public class Graph {
 			text += arts[i];
 		}
 		
-		text += "\n\n Brücken: \n";
+		text += "\n\n Brï¿½cken: \n";
 		text += getBridgeAmount() + "\n";
 		Edge[] bridges = getBridges();
 		for (int i = 0; i < bridges.length; i++) {

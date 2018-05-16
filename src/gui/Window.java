@@ -239,7 +239,9 @@ public class Window extends JFrame implements ActionListener,ChangeListener{
 					}
 				}
 			}
-			System.out.println(button.getName());
+			//System.out.println(button.getName());
+			
+			
 			if(button.getText().equals("0")) {
 				button.setText("1");
 				button2.setText("1");
@@ -259,7 +261,7 @@ public class Window extends JFrame implements ActionListener,ChangeListener{
 			
 			Graph g = new Graph(m);			
 			g.calculateAll();
-			System.out.println(g);
+			//System.out.println(g);
 			outputBox.setText(g.toString());
 			
 		}
