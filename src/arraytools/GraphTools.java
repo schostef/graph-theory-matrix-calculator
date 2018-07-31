@@ -69,7 +69,7 @@ public class GraphTools {
 		//Wenn i = position überspringe Zyklus
 	}
 	
-	public static boolean hasValue(Vertex[] arr, Vertex value) {
+	public static boolean containsVertex(Vertex[] arr, Vertex value) {
 		for (int i = 0; i < arr.length ; i++) {
 			if(arr[i].getName() == value.getName()) {
 				return true;
@@ -179,6 +179,23 @@ public class GraphTools {
 			ta[i] = arr[i];
 		}
 		return ta;
+	}
+
+	public static Vector[] removeDuplicates(Vector[] v) {
+			Vector[] nv = new Vector[1];
+			nv[0] = v[0];
+			for(int i = 1; i < v.length; i++) {
+				boolean entryFound = false;
+				for(int j = 0; j < nv.length; j++) {
+					if(nv[j].isEqual(v[i])) {
+						entryFound = true;
+					}
+				}
+				if(!entryFound) {
+					nv = push(nv, v[i]);
+				}
+			}
+			return nv;
 	}
 
 	

@@ -65,6 +65,7 @@ public class Matrix {
 		verticalVectors = new Vector[size];
 		horizontalVectors = new Vector[size];
 		this.size = size;
+		vectorize(matrix);
 	}
 	
 	/**
@@ -328,6 +329,10 @@ public class Matrix {
 		return tempMatrix;
 		
 	}
+	
+	public void makeBitMap(int setTrueOnValue) {
+		binMatrix = searchAndReport(this, setTrueOnValue).getBinMatrix();
+	}
 	/*
 	 * ******************************************************************
 	 */
@@ -478,6 +483,118 @@ public class Matrix {
 			return false;
 		}
 	}
+	
+	public boolean isIdentical(Matrix m1) {
+		return isIdentical(this,m1);
+	}
+	
+	public int countValue(int value,boolean alongDiagonal) {
+		int counter = 0;
+		if(alongDiagonal) {
+			for(int i = 0; i < size; i++) {
+				counter += verticalVectors[i].countValue(i, size-1, value);
+			}
+		}else {
+			for(Vector v:verticalVectors) {
+				counter += v.countValue(value);
+			}
+		}
+		
+		return counter;
+	}
+	
+	/**
+	 * Return the coordinates containing the provided value
+	 * @param i Value to search for
+	 * @param b true for: Skip mirrored duplicates ([i,j] for [j,i])
+	 * @return coordinates[entry No][i,j]
+	 */
+	public int[][] getCoordinatesOfValue(int i, boolean b) {
+		int[] currentRow = new int[0];
+		int[] currentCoordinate = new int[2];
+		int[][] coordinates;
+		int entryNo = 0;
+		if(isSymmetric) {
+			if(b) {
+				int entryCount = countValue(i, true);
+				coordinates = new int[entryCount][2];
+				for(int j = 0; j < size; j++) {
+					currentRow = verticalVectors[j].getPositionOfValue(j, size-1, i);
+					currentCoordinate[0] = j;
+					for(int k = 0; k < currentRow.length; k++) {
+						currentCoordinate[1] = currentRow[k];
+						coordinates[entryNo]=currentCoordinate;
+						entryNo++;
+					}
+				}
+			}else {
+				int entryCount = countValue(i, false);
+				coordinates = new int[entryCount][2];
+				for(int j = 0; j < size; j++) {
+					currentRow = verticalVectors[j].getPositionOfValue(i);
+					currentCoordinate[0] = j;
+					for(int k = 0; k < currentRow.length; k++) {
+						currentCoordinate[1] = currentRow[k];
+						coordinates[entryNo]=currentCoordinate;
+						entryNo++;
+					}
+				}
+			}
+		}else {
+			//Non-symmetric Matrizes not supported at the moment
+			return null;
+		}
+		
+		return coordinates;
+	}
+	
+	public static Matrix bitOperationXOR(Matrix m1, Matrix m2) {
+		if(m1.size == m2.size) {
+			Matrix compare = new Matrix(m1.size,false);
+			for(int i = 0; i < m1.size; i++) {
+				for(int j = 0; j < m1.size; j++) {
+					compare.getBinMatrix()[i][j] = (m1.getBinMatrix()[i][j] && !m2.getBinMatrix()[i][j]) || 
+							(!m1.getBinMatrix()[i][j] && m2.getBinMatrix()[i][j]);
+				}
+			}
+			return compare;
+		}else {
+			return null;
+		}
+		
+	}
+	
+	public static Matrix bitOperationAND(Matrix m1, Matrix m2) {
+		if(m1.size == m2.size) {
+			Matrix compare = new Matrix(m1.size,false);
+			for(int i = 0; i < m1.size; i++) {
+				for(int j = 0; j < m1.size; j++) {
+					compare.getBinMatrix()[i][j] = m1.getBinMatrix()[i][j] && m2.getBinMatrix()[i][j];
+				}
+			}
+			return compare;
+		}else {
+			return null;
+		}
+	}
+	
+	public Vector[] fetchEqualRows() {
+		Vector[] result = new Vector[0];
+		vectorize();
+		result = GraphTools.push(result, verticalVectors[0]);
+		for(int i = 1; i < size; i++) {
+			boolean match = false;
+			for(int j = 0; j < result.length && !match; j++) {
+				if(!result[j].isEqual(verticalVectors[i])) {
+					result = GraphTools.push(result, verticalVectors[i]);
+					match = true;
+				}
+			}
+		}
+		return result;
+	}
+	
+
 	
 	/*
 	 * ********************************************************************
@@ -691,6 +808,12 @@ public class Matrix {
 
 		return text;
 	}
+
+
+
+	
+
+	
 
 	
 

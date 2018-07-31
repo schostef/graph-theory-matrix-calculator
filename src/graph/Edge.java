@@ -30,19 +30,28 @@ public class Edge {
 	 * @param v2 Destination Vertex
 	 */
 	public Edge(Vertex v1, Vertex v2) {
-		v1.addNeighbor(v2);
-		v2.addNeighbor(v1);
 		vertices[0] = v1;
 		vertices[1] = v2;
+		vertices[0].addNeighbor(v2);
+		vertices[1].addNeighbor(v1);
+		vertices[0].addEdge(this);
+		vertices[1].addEdge(this);
+	
+		
 	}
 	
 	public Edge(int id, Vertex v1, Vertex v2, String name) {
 		this.id = id;
-		v1.addNeighbor(v2);
-		v2.addNeighbor(v1);
+		this.name = name;
 		vertices[0] = v1;
 		vertices[1] = v2;
-		this.name = name;
+		vertices[0].addNeighbor(v2);
+		vertices[1].addNeighbor(v1);
+		vertices[0].addEdge(this);
+		vertices[1].addEdge(this);
+		
+		
+		
 	}
 	
 	/**
@@ -93,6 +102,18 @@ public class Edge {
 		return null;
 	}
 	
+	public boolean connects(Vertex vertex, Vertex vertex2) {
+		Vertex v1 = vertices[0];
+		Vertex v2 = vertices[1];
+		if(vertex.getName() == v1.getName() || vertex.getName() == v2.getName()) {
+			if(vertex2.getName() == v1.getName() || vertex2.getName() == v2.getName()) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
 	public boolean hasVertex(Vertex vertex) {
 		if(vertices[0].getName() == vertex.getName() || 
 				vertices[1].getName() == vertex.getName()) {
@@ -113,6 +134,10 @@ public class Edge {
 			}
 		}
 		return false;
+	}
+	
+	public boolean isEqual(Edge e) {
+		return connects(e.getVertices()[0],e.getVertices()[1]);
 	}
 	
 	public int getID() {
@@ -151,6 +176,10 @@ public class Edge {
 	public String toString() {
 		return "Kante "+name;
 	}
+
+	
+
+
 	
 	/*
 	 * ****************************************************************************

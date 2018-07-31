@@ -8,14 +8,12 @@
  */
 
 package graph;
-import java.time.chrono.IsoChronology;
 
 import arraytools.ArrayTools;
 import arraytools.GraphTools;
 import matrix.*;
 
 public class Graph {
-	private boolean vertexNamesAreInt = true; //Vertex names should either be Letters or Numbers, not both
 	//Store vertices and edges here
 	protected Vertex[] vertices;
 	protected Edge[] edges;
@@ -50,7 +48,6 @@ public class Graph {
 	 * @param m Adjacency Matrix
 	 */
 	public Graph(Matrix m) {
-		reinitialize();
 		drawFromMatrix(m);
 		if(vertexSum > 2)
 			adjacencyMatrizes = new Matrix[vertexSum -1];
@@ -133,6 +130,15 @@ public class Graph {
 		return null;
 	}
 	
+	public Edge getEdge(Vertex vertex, Vertex vertex2) {
+		for(Edge e : edges) {
+			if(e.connects(vertex,vertex2)) {
+				return e;
+			}
+		}
+		return null;
+	}
+	
 	/**
 	 * Return the exponential Matrix of exponent
 	 * @param exponent starting at 1 to maximum of vertex count - 1
@@ -162,35 +168,11 @@ public class Graph {
 		return diameter;
 	}
 	
-	private Vertex[] getIsolatedVertices() {
-		Vertex[] isolatedVertices = new Vertex[0];
-		for(int i = 0; i < vertices.length; i++) {
-			if(vertices[i].isIsolated()) {
-				isolatedVertices = GraphTools.push(isolatedVertices, vertices[i]);
-			}
-		}
-		return isolatedVertices;
+	public int getComponentAmount() {
+		return this.componentAmount;
 	}
 	
-	private Vertex[] getVerticesByDegree(int degree) {
-		Vertex[] vertexList = new Vertex[0];
-		for(int i = 0; i < vertices.length; i++) {
-			if(vertices[i].getDegree() == degree) {
-				vertexList = GraphTools.push(vertexList, vertices[i]);
-			}
-		}
-		return vertexList;
-	}
 	
-	private Vertex[] getVerticesByDegreeHigherThan(int degree) {
-		Vertex[] vertexList = new Vertex[0];
-		for(int i = 0; i < vertices.length; i++) {
-			if(vertices[i].getDegree() > degree) {
-				vertexList = GraphTools.push(vertexList, vertices[i]);
-			}
-		}
-		return vertexList;
-	}
 	
 	/*
 	 * ************************************************************************
@@ -202,19 +184,7 @@ public class Graph {
 	 * ************************************************************************
 	 */
 	
-	private void setAllEdgesVisited(boolean b) {
-		for(int i = 0; i < edges.length; i++) {
-			edges[i].setVisited(b);
-		}
-		
-	}
-
-	private void setAllVerticesVisited(boolean b) {
-		for(int i = 0; i < vertices.length; i++) {
-			vertices[i].setVisited(b);
-		}
-		
-	}
+	
 	
 	/*
 	 * *************************************************************************
@@ -234,41 +204,89 @@ public class Graph {
 	 * @param m Adjacency Matrix
 	 */
 	public void drawFromMatrix(Matrix m) {
-		//Clear everything and draw from start
-		reinitialize();
-		int vertexNumber= 0;
-		int stepper = 0;
-		
-		// First start adding default vertices provided through the Matrix's dimension
-		for (int i = 0; i < m.size; i++) {
-			addVertex();
-		}
-		
-		//If the Matrix is symmetric (The graph is bidirectional) only half the matrix needs to be processed
-		if(m.isSymmetric()) {
-			while(vertexNumber < m.size) {
-				stepper = vertexNumber;
-				while(stepper < m.size) {
-					if(m.getValueAt(vertexNumber, stepper) == 1) {
-						addEdge(vertices[vertexNumber], vertices[stepper]);
-					}
-					stepper++;
-				}
-				vertexNumber++;
+		boolean recalculate = false;
+		if(adjacencyMatrizes == null || adjacencyMatrizes.length == 0) {
+			reinitialize();
+			addVertex(m.size);
+			int[][] edgeIndizes = m.getCoordinatesOfValue(1,true);
+			for(int[] c:edgeIndizes) {
+				edges = GraphTools.push(edges, new Edge(getVertex(c[0]+1),getVertex(c[1]+1)));
 			}
+			recalculate = true;
+		}else {
+			if(vertexSum == m.size) {
+				if(!adjacencyMatrizes[0].isIdentical(m)) {
+					adjacencyMatrizes[0].makeBitMap(1);
+					m.makeBitMap(1);
+					Matrix changeMap = Matrix.bitOperationXOR(m,adjacencyMatrizes[0]);
+					for(int i = 0; i < vertexSum; i++) {
+						for(int j = i; j < vertexSum; j++) {
+							if(changeMap.getBinMatrix()[i][j]) {
+								if(m.getValueAt(i, j) == 1) {
+									addEdge(getVertex(i+1), getVertex(j+1));
+								}else {
+									deleteEdge(getEdge(getVertex(i+1), getVertex(j+1)));
+								}
+							}
+						}
+					}
+					recalculate = true;
+				}
+			}else {
+				if(m.size > vertexSum) {
+					addVertex(m.size-vertexSum);
+					recalculate = true;
+				}else {
+					boolean deletedVertexFound = false;
+					int index = 0;
+					while(!deletedVertexFound || index < m.size) {
+						Matrix tm = adjacencyMatrizes[0].removeCross(index);
+						tm.vectorize();
+						m.vectorize();
+						if(tm.isIdentical(m)) {
+							deleteVertex(getVertex(index+1));
+							deletedVertexFound = true;
+						}
+						index++;
+					}
+					recalculate = true;
+					if(!deletedVertexFound) {
+						reinitialize();
+						drawFromMatrix(m);
+					}
+					
+				}
+			}
+		}
+		adjacencyMatrizes = new Matrix[m.size];
+		adjacencyMatrizes[0] = m;
+		if(recalculate) {
+			calculateAll();
 		}
 	}
 	
+	
+
+
 	/**
 	 * Adds a new vertex
 	 * @param name
 	 */
+	/*
 	public void addVertex(int name) {
 		Vertex[] tV = GraphTools.expand(vertices);
 		tV[vertexSum + 1] = new Vertex(name);
 		vertices = tV;
 		//sortVertices();
 		vertexSum++;
+		createAdjacencyMatrix();
+	}
+	*/
+	
+	public void addVertex(int amount) {
+		for(int i = 0; i < amount; i++) {
+			addVertex();
+		}
 	}
 	
 	/**
@@ -278,7 +296,6 @@ public class Graph {
 		Vertex[] tV = GraphTools.expand(vertices);
 		tV[vertexSum] = new Vertex(vertexSum+1);
 		vertices = tV;
-		//sortVertices();
 		vertexSum++;
 	}
 	
@@ -288,34 +305,29 @@ public class Graph {
 	public void addEdge(Vertex v1, Vertex v2) {
 		Edge[] tedge = GraphTools.expand(edges);
 		tedge[edges.length] = new Edge(edgeSum,v1,v2,"["+v1.getName()+","+v2.getName()+"]");
-		v1.addEdge(tedge[edges.length]);
-		v2.addEdge(tedge[edges.length]);
 		edges = tedge;
 		edgeSum++;
 	}	
 	
-	public Subgraph removeVertex(Vertex v) {
-		// remove the incident edges of v
-		Edge[] tempEdges = new Edge[edges.length-v.getDegree()];
-		int currentIndex = 0;
-		for(int i = 0; i < edges.length; i++) {
-			if(!v.hasEdge(edges[i])) {
-				tempEdges[currentIndex] = edges[i];
-				currentIndex++;
-			}
+	public void deleteVertex(Vertex v) {
+		for(Edge e : v.getAllEdges()) {
+			deleteEdge(e);
 		}
-		
-		currentIndex = 0;
-		Vertex[] tempVertices = new Vertex[vertexSum-1];
-		for(int i = 0; i < vertices.length; i++) {
-			if(vertices[i].getName() != v.getName()) {
-				tempVertices[currentIndex]=vertices[i];
-				currentIndex++;
-			}
-		}
-		
-		Matrix tempMatrix = adjacencyMatrizes[0].removeCross(v.getName()-1);
-		return new Subgraph(this,tempVertices,tempEdges,tempMatrix);
+		vertices = GraphTools.delete(vertices, v);
+		vertexSum--;
+	}
+	
+	public void deleteEdge(Edge e) {
+		Vertex v1 = e.getVertices()[0];
+		v1.deleteEdge(e);
+		edges = GraphTools.delete(edges, e);
+		edgeSum--;
+	}
+	
+	public Subgraph subgraphDeleteVertex(Vertex v) {
+		Subgraph sg = new Subgraph(vertices,edges);
+		sg.deleteVertex(v);
+		return sg;
 	}
 	
 	public void findArticulations() {
@@ -324,10 +336,21 @@ public class Graph {
 		//Only check if Vertex is not isolated
 		for (int i = 0; i < vertices.length; i++) {
 			if(!vertices[i].isIsolated()) {
-				subgraphs[i] = removeVertex(vertices[i]);
+				Vertex[] reducedGraph = new Vertex[vertices.length-1];
+				int position = 0;
+				for(int j = 0; j < vertices.length; j++) {
+					if(j != i) {
+						reducedGraph[position] = vertices[j];
+						position++;
+					}
+				}
+				
+				subgraphs[i] = new Subgraph(reducedGraph);
 				subgraphs[i].calculateAll();
 				if(subgraphs[i].getComponentAmount() > this.componentAmount) {
 					vertices[i].setArticulation(true);
+				}else {
+					vertices[i].setArticulation(false);
 				}
 			}
 		}
@@ -339,22 +362,22 @@ public class Graph {
 	}
 	
 	public void findBridges() {
-		Subgraph[] subgraphs = new Subgraph[edgeSum];
-		for (int i = 0; i < edgeSum; i++) {
-			Edge[] edges = new Edge[edgeSum-1];
-			int pos = 0;
+		for(int i = 0; i < edgeSum; i++) {
+			Edge[] reducedGraph = new Edge[edgeSum-1];
+			int position = 0;
 			for(int j = 0; j < edgeSum; j++) {
 				if(j != i) {
-					edges[pos] = this.edges[j];
-					pos++;
+					reducedGraph[position] = edges[j];
+					position++;
 				}
 			}
-			subgraphs[i] = span(edges);
-			subgraphs[i].calculateAll();
-			if(subgraphs[i].getComponentAmount() > this.componentAmount) {
-				this.edges[i].setBridge(true);
+			Subgraph sg = new Subgraph(vertices,reducedGraph);
+			sg.calculateAll();
+			if(sg.getComponentAmount() > this.componentAmount) {
+				edges[i].setBridge(true);
+			} else {
+				edges[i].setBridge(false);
 			}
-			
 		}
 	}
 	
@@ -501,10 +524,16 @@ public class Graph {
 	 * Calculate all Exponentialmatrizes to the maximum Number of vertex count - 1
 	 */
 	public void calculateExponentialMatrizes() {
-		//if there are less than 3 vertices, there is nothing to calculate
-		
-		for(int i = 1; i < vertexSum ; i++) {
-			adjacencyMatrizes[i-1] = adjacencyMatrizes[0].exponentiate(i);
+		for(int i = 1; i < vertexSum-1 ; i++) {
+			adjacencyMatrizes[i] = adjacencyMatrizes[0].exponentiate(i+1);
+		}
+	}
+	
+	public void calculateExponentialMatrix(int exponent) {
+		for(int i = 1; i < exponent; i++) {
+			if(adjacencyMatrizes[i] == null) {
+				adjacencyMatrizes[i] = adjacencyMatrizes[0].multiply(adjacencyMatrizes[i-1]);
+			}
 		}
 	}
 	
@@ -513,15 +542,25 @@ public class Graph {
 	 * adjacencyMatrizes[0] index
 	 */
 	public void createAdjacencyMatrix() {
-		refreshAdjacencyMatrizes();
-		adjacencyMatrizes[0] = new Matrix(vertexSum);
-		for (int i = 0; i < vertexSum; i++) {
-			for (int j = 0; j < vertexSum; j++) {
-				if(vertices[i].neighborExists(vertices[j])) {
-					adjacencyMatrizes[0].setValueAt(i, j, 1);
-				}else {
-					adjacencyMatrizes[0].setValueAt(i, j, 0);
+		if(vertexSum > 1) {
+			refreshAdjacencyMatrizes();
+			adjacencyMatrizes[0] = new Matrix(vertexSum);
+			int[] vertexIndex = new int[vertexSum];
+			for(int i = 0; i < vertexSum; i++) {
+				vertexIndex[i] = vertices[i].getName();
+			}
+			
+			for (Edge e: edges) {
+				int v1 = e.getVertices()[0].getName();
+				int v2 = e.getVertices()[1].getName();
+				if(ArrayTools.contains(vertexIndex,v1) && ArrayTools.contains(vertexIndex,v2)) {
+					int x = ArrayTools.indexOf(vertexIndex,v1);
+					int y = ArrayTools.indexOf(vertexIndex,v2);
+					
+					adjacencyMatrizes[0].setValueAt(x, y, 1);
+					adjacencyMatrizes[0].setValueAt(y, x, 1);
 				}
+				
 			}
 		}
 		adjacencyMatrizes[0].vectorize();
@@ -540,23 +579,18 @@ public class Graph {
 	 * Copy Adjacency Matrix and set Vertex's Path to itself to 1
 	 */
 	public void initializePathMatrix() {
-		if(adjacencyMatrizes[0] != null) {
-			pathMatrix = new Matrix(adjacencyMatrizes[0].getMatrix());
-			for(int i = 0; i < vertexSum; i++) {
-				pathMatrix.setValueAt(i, i, 1);
-			}
-			pathMatrix.vectorize();
-			initializeControlMatrix();
+		pathMatrix = new Matrix(adjacencyMatrizes[0].getMatrix());
+		for(int i = 0; i < vertexSum; i++) {
+			pathMatrix.setValueAt(i, i, 1);
 		}
+		pathMatrix.vectorize();
+		pathMatrix.makeBitMap(0);
+		pathMatrix.vectorize(pathMatrix.getBinMatrix());
 	}
 	
 	public void initializeDistanceMatrix() {
-		if(adjacencyMatrizes[0] != null) {
-			distanceMatrix = new Matrix(adjacencyMatrizes[0].getMatrix());
-			distanceMatrix.vectorize();
-		}
-		
-		
+		distanceMatrix = new Matrix(adjacencyMatrizes[0].getMatrix());
+		distanceMatrix.vectorize();		
 	}
 	
 	/**
@@ -576,104 +610,79 @@ public class Graph {
 	}
 	
 	public void calculateDistancePathMatrix() {
-		Matrix lastControlMatrix = new Matrix(controlMatrix.getBinMatrix());
-		int pathlength = 2;
-		do {
-			lastControlMatrix = null;
-			lastControlMatrix = new Matrix(controlMatrix.getBinMatrix());
-			if(pathlength < vertexSum) {
-				
-				for(int vector = 0; vector < vertexSum; vector++) {
-					for (int position = 0; position < vertexSum; position++) {
-						if(!controlMatrix.getBinMatrix()[vector][position]) {
-							if(adjacencyMatrizes[pathlength-1].getValueAt(vector, position) != 0) {
-								pathMatrix.setValueAt(vector, position, 1);
-								distanceMatrix.setValueAt(vector, position, pathlength);
-								controlMatrix.setFlagAt(vector, position);
-							}
+		if(vertexSum > 2) {
+			int pathlength = 2;
+			Matrix lastPathMatrix;
+			Matrix changeMatrix;
+			do {
+				lastPathMatrix = new Matrix(pathMatrix.getBinMatrix());
+				calculateExponentialMatrix(pathlength);
+				adjacencyMatrizes[pathlength-1].makeBitMap(0);
+				adjacencyMatrizes[pathlength-2].makeBitMap(0);
+				//distanceMatrix.makeBitMap(0);
+				changeMatrix = Matrix.bitOperationAND(lastPathMatrix, (Matrix.bitOperationXOR(adjacencyMatrizes[pathlength-2], adjacencyMatrizes[pathlength-1])));
+				for(int i = 0; i < vertexSum; i++) {
+					for( int j = 0; j < vertexSum; j++) {
+						if(changeMatrix.getBinMatrix()[i][j]) {
+							pathMatrix.setValueAt(i, j, 1);
+							distanceMatrix.setValueAt(i, j, pathlength);
 						}
 					}
 				}
-				
-			}
-			pathlength++;
-			controlMatrix.vectorize(controlMatrix.getBinMatrix());
-		}while(!Matrix.isIdentical(controlMatrix, lastControlMatrix));
+				pathlength++;
+				pathMatrix.vectorize();
+				lastPathMatrix.vectorize(lastPathMatrix.getBinMatrix());
+				pathMatrix.makeBitMap(0);
+				pathMatrix.vectorize(pathMatrix.getBinMatrix());
+			}while(!Matrix.isIdentical(pathMatrix, lastPathMatrix) && pathlength < vertexSum);
+		}
 		
-		if(!Matrix.isIdentical(controlMatrix, new Matrix(vertexSum,true))) {
-			for(int vector = 0; vector < vertexSum; vector++) {
-				for (int position = 0; position < vertexSum; position++) {
-					if(!controlMatrix.getBinMatrix()[vector][position]) {
-						distanceMatrix.setValueAt(vector, position, -1);
+		if(!Matrix.isIdentical(pathMatrix, new Matrix(vertexSum,false))) {
+			for(int i = 0; i < vertexSum; i++) {
+				for (int j = 0; j < vertexSum; j++) {
+					if(pathMatrix.getBinMatrix()[i][j]) {
+						distanceMatrix.setValueAt(i, j, -1);
 					}
 				}
 			}
 			isCohesive = false;
+		}else {
+			isCohesive = true;
 		}
 		
 		pathMatrix.vectorize();
 		distanceMatrix.vectorize();
-		controlMatrix.vectorize(controlMatrix.getBinMatrix());
-		if(isCohesive) {
-			components = new Subgraph[1]; 
-			components[0] = new Subgraph(this,vertices,edges,adjacencyMatrizes[0]);
-		}else {
-			calculateComponents();
-		}
+		
 		
 	}
 	
 	protected void calculateComponents() {
-		/*
-		 * 1. aus der Wegmatrix heraus erstelle eine Liste der Knotennamen, 
-		 * die miteinander pro Zeile verbunden sind
-		 */
-		Vector[] vertexConnections = new Vector[vertexSum];
-		int[] vertexList = new int[0];
-		for (int vector = 0; vector < vertexSum; vector++) {
-			for (int position = 0; position < vertexSum; position++) {
-				if(controlMatrix.getBinMatrix()[vector][position]) {
-					vertexList = ArrayTools.push(vertexList, vertices[position].getName());
-				}
+		createAdjacencyMatrix();
+		initializeDistanceMatrix();
+		initializePathMatrix();
+		calculateDistancePathMatrix();
+		if(isCohesive) {
+			components = new Subgraph[1]; 
+			components[0] = new Subgraph(vertices,edges);
+			componentAmount = 1;
+		}else {			
+			Vector[] pathMatch = pathMatrix.fetchEqualRows();
+			pathMatch = GraphTools.removeDuplicates(pathMatch);
+			int[][] componentIndizes = new int[pathMatch.length][0];
+			for(int i = 0; i < pathMatch.length; i++) {
+				componentIndizes[i] = pathMatch[i].getIndizesof(1);
 			}
-			vertexConnections[vector] = new Vector(vertexList);
-			vertexList = null;
-			vertexList = new int[0];
-		}
-		
-		/*
-		 * 2. Mit der zuvor erstellten Liste, vergleiche die Knotennamen untereinander,
-		 * gibt es eine �bereinstimmung, so handelt es sich um eine bestehende Komponente.
-		 * Gibt es keine �bereinstimmung, so wird eine neue Komponente erstellt.
-		 * Am Schluss haben wir eine Liste an Komponenten mit ihren Knotennamen: componentList
-		 */
-		int componentCounter = 0;
-		int vector = 0;
-		Vector[] componentList = new Vector[1];
-		componentList[0] = vertexConnections[0];
-		while(vector < vertexSum) {
-			if(componentCounter >= componentList.length) {
-				componentList = GraphTools.push(componentList, vertexConnections[vector]);
-				componentCounter = 0;
-			}
-			while(vector < vertexSum && componentList[componentCounter].isEqual(vertexConnections[vector])) {
-				vector++;
-				componentCounter = 0;
-			}
-			componentCounter++;
 			
-		}
-		
-		/*
-		 * 3. S�ttigen der einzelnen Komponenten aus componentList. Dies m�ssen Teilgraphen von G sein.
-		 * Die Knoten und Kantenmengen d�rfen keine neuen Objekte sein, sondern m�ssen Referenzen auf den Obergraph darstellen.
-		 */
-		this.componentAmount = componentList.length;
-		this.components = new Subgraph[componentAmount];
-		for(int i = 0; i < componentAmount; i++) {
-			this.components[i] = saturate(componentList[i]);
-		}
-		
+			this.componentAmount = pathMatch.length;
+			this.components = new Subgraph[componentAmount];
+			for(int i = 0; i < componentAmount; i++) {
+				Vertex[] v = new Vertex[componentIndizes[i].length];
+				for(int j = 0; j < componentIndizes[i].length; j++) {
+					v[j] = getVertex(componentIndizes[i][j]+1);
+				}
+				this.components[i] = new Subgraph(v);
+			}
+		}		
 	}
 	
 	/*
@@ -683,14 +692,11 @@ public class Graph {
 	 */
 	
 	public void calculateAll() {
-		calculateExponentialMatrizes();
-		initializeDistanceMatrix();
-		initializePathMatrix();
-		calculateDistancePathMatrix();
+		calculateComponents();
 		calculateEccentricities();
 		findArticulations();
 		findBridges();
-		findEulerPath();
+		//findEulerPath();
 		
 	}
 	
@@ -756,7 +762,9 @@ public class Graph {
 			eccentricity.findValueAndSet(eccentricity, radius, true);
 			for(int i = 0; i < eccentricity.size; i++) {
 				if(eccentricity.getBinValueAt(i)) {
-					vertices[i].switchCenter();
+					vertices[i].setCenter(true);
+				}else {
+					vertices[i].setCenter(false);
 				}
 			}
 		}else {
@@ -782,7 +790,7 @@ public class Graph {
 	
 	public String toString() {
 		String text = "";
-		
+		text += "Anzahl der Knoten: "+vertexSum+", Anzahl der Kanten: "+edgeSum+"\n\n";
 		text += "Zusammenh�ngend: \t";
 		if(isCohesive) {
 			text += "Ja";
@@ -877,6 +885,8 @@ public class Graph {
 		*/
 		return text;
 	}
+
+
 	
 	
 

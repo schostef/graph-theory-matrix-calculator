@@ -390,7 +390,49 @@ public class Graveyard {
 				
 			}
 			
+			private Vertex[] getIsolatedVertices() {
+				Vertex[] isolatedVertices = new Vertex[0];
+				for(int i = 0; i < vertices.length; i++) {
+					if(vertices[i].isIsolated()) {
+						isolatedVertices = GraphTools.push(isolatedVertices, vertices[i]);
+					}
+				}
+				return isolatedVertices;
+			}
 			
+			private Vertex[] getVerticesByDegree(int degree) {
+				Vertex[] vertexList = new Vertex[0];
+				for(int i = 0; i < vertices.length; i++) {
+					if(vertices[i].getDegree() == degree) {
+						vertexList = GraphTools.push(vertexList, vertices[i]);
+					}
+				}
+				return vertexList;
+			}
+			
+			private Vertex[] getVerticesByDegreeHigherThan(int degree) {
+				Vertex[] vertexList = new Vertex[0];
+				for(int i = 0; i < vertices.length; i++) {
+					if(vertices[i].getDegree() > degree) {
+						vertexList = GraphTools.push(vertexList, vertices[i]);
+					}
+				}
+				return vertexList;
+			}
+			
+			private void setAllEdgesVisited(boolean b) {
+				for(int i = 0; i < edges.length; i++) {
+					edges[i].setVisited(b);
+				}
+				
+			}
+
+			private void setAllVerticesVisited(boolean b) {
+				for(int i = 0; i < vertices.length; i++) {
+					vertices[i].setVisited(b);
+				}
+				
+			}
 			
 			
 

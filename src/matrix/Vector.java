@@ -12,6 +12,7 @@
 package matrix;
 
 import arraytools.ArrayTools;
+import arraytools.GraphTools;
 
 public class Vector {
 
@@ -145,6 +146,26 @@ public class Vector {
 		return false;
 	}
 	
+	public int[] getPositionOfValue(int x) {
+		int[] list = new int[0];
+		for(int i = 0; i < size; i++) {
+			if(vector[i] == x) {
+				list = ArrayTools.push(list, i);
+			}
+		}
+		return list;
+	}
+	
+	public int[] getPositionOfValue(int start,int end,int x) {
+		int[] list = new int[0];
+		for(int i = start; i <= end; i++) {
+			if(vector[i] == x) {
+				list = ArrayTools.push(list, i);
+			}
+		}
+		return list;
+	}
+	
 	/**
 	 * Search a int type vector for a value. If the value is found write the boolean value inside the binVector
 	 * @param vector int vecotor to search for
@@ -162,6 +183,24 @@ public class Vector {
 			binVector = ArrayTools.findAllDuplicates(vector.getVector(), value);
 		}
 		
+	}
+	
+	public int countValue(int start, int end, int value) {
+		return getPositionOfValue(start, end, value).length;		
+	}
+	
+	public int countValue(int value) {
+		return countValue(0,size,value);
+	}
+	
+	public int[] getIndizesof(int searchValue) {
+		int[] found = new int[0];
+		for(int i = 0; i < size; i++) {
+			if(vector[i] == searchValue) {
+				found = ArrayTools.push(found, i);
+			}
+		}
+		return found;
 	}
 	
 	
@@ -261,6 +300,8 @@ public class Vector {
 		
 		return text;
 	}
+
+	
 
 	
 

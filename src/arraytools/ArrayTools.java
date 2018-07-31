@@ -197,6 +197,15 @@ public class ArrayTools {
 		
 		return tempArr;
 	}
+	
+	public static int indexOf(int[] arr, int val) {
+		for(int i = 0; i < arr.length; i++) {
+			if(arr[i] == val) {
+				return i;
+			}
+		}
+		return -1;
+	}
 
 	/*
 	 * *******************************************************************
@@ -294,6 +303,15 @@ public class ArrayTools {
 			}
 		}
 		return duplications;
+	}
+	
+	public static boolean contains(int[] arr, int val) {
+		for(int i:arr) {
+			if(i == val) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/*
@@ -462,5 +480,9 @@ public class ArrayTools {
 			System.out.println();
 		}
 	}
+
+	
+
+	
 
 }

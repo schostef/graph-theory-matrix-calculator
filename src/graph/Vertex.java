@@ -178,8 +178,8 @@ public class Vertex {
 		this.neighbors = neighbors;
 	}
 	
-	public void switchCenter() {
-		isCenter = !isCenter;
+	public void setCenter(boolean b) {
+		isCenter = b;
 	}
 	
 	
@@ -215,9 +215,9 @@ public class Vertex {
 	}
 	
 	public void addEdge(Edge e) {
-		Edge[] tempEdges = push(e);
-		edges = null;
-		edges = tempEdges;
+		edges = GraphTools.push(edges, e);
+		//Edge[] tempEdges = push(e);
+		//edges = tempEdges;
 	}
 	
 	public Edge[] push(Edge e) {
@@ -227,6 +227,16 @@ public class Vertex {
 		}
 		tempEdges[edges.length] = e;
 		return tempEdges;
+	}
+	
+	public void deleteEdge(Edge e) {
+		boolean found = false;
+		for(int i = 0; i < edges.length && !found; i++) {
+			if(e.getID() == edges[i].getID()) {
+				edges = GraphTools.delete(edges, e);
+				e.getOppositeVertex(this).deleteEdge(e);				
+			}
+		}
 	}
 	
 	/*

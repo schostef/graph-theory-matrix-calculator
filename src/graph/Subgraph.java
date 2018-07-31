@@ -1,43 +1,83 @@
 package graph;
 
+import arraytools.GraphTools;
 import matrix.Matrix;
+import matrix.Vector;
 
 public class Subgraph extends Graph {
-	private boolean isSaturated;
-	private boolean isSpanning;
-	private Graph parentGraph;
 
 	public Subgraph() {
-		reinitialize();
+		super();
 	}
 	
-	public Subgraph(Graph parentGraph, Vertex[] vertices, Edge[] edges, Matrix adjacencyMatrix) {
-		this.parentGraph = parentGraph;
+	public Subgraph(Vertex[] vertices) {
+		super();
+		this.vertices = vertices;
+		vertexSum = vertices.length;
+		this.edges = new Edge[0];
+		getIncidentEdges();
+	}
+	
+	public Subgraph(Vertex[] vertices, Edge[] edges) {
+		super();
 		this.vertices = vertices;
 		this.edges = edges;
-		this.vertexSum = vertices.length;
-		if(vertexSum > 2)
-			adjacencyMatrizes = new Matrix[vertexSum -1];
-		else
-			adjacencyMatrizes = new Matrix[2];
-		//this.adjacencyMatrizes = new Matrix[vertices.length-1];
-		this.adjacencyMatrizes[0] = adjacencyMatrix;
-		this.adjacencyMatrizes[0].vectorize();
-		this.edgeSum = this.adjacencyMatrizes[0].getSymmetricSum();
-		
+		vertexSum = vertices.length;
+		edgeSum = edges.length;
+		adjacencyMatrizes = new Matrix[vertexSum -1];
+		createAdjacencyMatrix();
 	}
 	
-	public Subgraph(Graph parentGraph, Matrix adjacencyMatrix) {
-		
-	}
-
-	public Subgraph(Matrix m) {
-		
+	public void getIncidentEdges() {
+		for(Vertex v: vertices) {
+			Edge[] eA = v.getAllEdges();
+			for(Edge e:eA ) {
+				if(!contains(e)) {
+					Vertex x = e.getOppositeVertex(v);
+					if(contains(x)) {
+						edges = GraphTools.push(edges, e);
+					}					
+				}
+			}
+		}
+		edgeSum = edges.length;
 	}
 	
-	public int getComponentAmount() {
-		return this.componentAmount;
+	public boolean contains(Vertex v) {
+		for(Vertex x: vertices) {
+			if(v.getName() == x.getName()) {
+				return true;
+			}
+		}
+		return false;
 	}
+	
+	public boolean contains(Edge e) {
+		for(Edge f: edges) {
+			if(f.isEqual(e)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	protected void calculateComponents() {
+		createAdjacencyMatrix();
+		initializeDistanceMatrix();
+		initializePathMatrix();
+		calculateDistancePathMatrix();
+		if(!isCohesive) {			
+			Vector[] pathMatch = pathMatrix.fetchEqualRows();
+			pathMatch = GraphTools.removeDuplicates(pathMatch);
+			int[][] componentIndizes = new int[pathMatch.length][0];
+			for(int i = 0; i < pathMatch.length; i++) {
+				componentIndizes[i] = pathMatch[i].getIndizesof(1);
+			}
+			
+			this.componentAmount = pathMatch.length;
+		}		
+	}
+	
 	
 	public String toString() {
 		String text = "";
@@ -52,10 +92,7 @@ public class Subgraph extends Graph {
 	}
 	
 	public void calculateAll() {
-		calculateExponentialMatrizes();
-		initializeDistanceMatrix();
-		initializePathMatrix();
-		calculateDistancePathMatrix();
+		calculateComponents();
 		
 	}
 
