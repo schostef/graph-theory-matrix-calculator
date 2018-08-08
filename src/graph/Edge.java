@@ -32,6 +32,7 @@ public class Edge {
 	public Edge(Vertex v1, Vertex v2) {
 		vertices[0] = v1;
 		vertices[1] = v2;
+		name = "["+v1.getName()+","+v2.getName()+"]";
 		vertices[0].addNeighbor(v2);
 		vertices[1].addNeighbor(v1);
 		vertices[0].addEdge(this);
@@ -174,7 +175,7 @@ public class Edge {
 	 */
 	
 	public String toString() {
-		return "Kante "+name;
+		return name;
 	}
 
 	

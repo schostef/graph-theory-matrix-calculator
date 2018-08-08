@@ -24,6 +24,7 @@ public class Vertex {
 	private boolean isVisited = false;
 	private Vertex[] neighbors; //Adjacent Vertices
 	private Edge[] edges; //Incident Edges
+	private Edge activeLane;
 
 	/*
 	 * ************************************************************
@@ -206,7 +207,6 @@ public class Vertex {
 		//neighbor array. Remove isolation flag.
 		if (!neighborExists(v)) {
 			Vertex[] tempNeighbor = GraphTools.push(neighbors,v);
-			degree++;
 			checkIsolation();
 			neighbors = tempNeighbor;
 			
@@ -214,8 +214,20 @@ public class Vertex {
 		
 	}
 	
+	public void deleteNeighbor(Vertex v) {
+		for(Vertex vn: neighbors) {
+			if(vn.getName() == v.getName()) {
+				neighbors = GraphTools.delete(neighbors, v);
+			}
+		}
+	}
+	
 	public void addEdge(Edge e) {
 		edges = GraphTools.push(edges, e);
+		if(edges.length == 1) {
+			activeLane = e;
+		}
+		degree = edges.length;
 		//Edge[] tempEdges = push(e);
 		//edges = tempEdges;
 	}
@@ -233,8 +245,10 @@ public class Vertex {
 		boolean found = false;
 		for(int i = 0; i < edges.length && !found; i++) {
 			if(e.getID() == edges[i].getID()) {
+				deleteNeighbor(e.getOppositeVertex(this));
 				edges = GraphTools.delete(edges, e);
-				e.getOppositeVertex(this).deleteEdge(e);				
+				e.getOppositeVertex(this).deleteEdge(e);	
+				degree = edges.length;
 			}
 		}
 	}
@@ -290,7 +304,7 @@ public class Vertex {
 		for (int i = 0; i < edges.length; i++) {
 			text += edges[i].getName()+", ";
 		}
-		return "Vertex: " + name;
+		return ""+name;
 	}
 	
 	/*

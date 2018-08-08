@@ -24,7 +24,27 @@ public class Subgraph extends Graph {
 		this.edges = edges;
 		vertexSum = vertices.length;
 		edgeSum = edges.length;
-		adjacencyMatrizes = new Matrix[vertexSum -1];
+		//adjacencyMatrizes = new Matrix[vertexSum -1];
+		createAdjacencyMatrix();
+	}
+	
+	public Subgraph(Edge[] edges) {
+		super();
+		this.edges = edges;
+		Vertex[] vertices = new Vertex[0];
+		for(Edge e: edges) {
+			Vertex v1 = e.getVertices()[0];
+			Vertex v2 = e.getVertices()[1];
+			if(!GraphTools.containsVertex(vertices, v1)) {
+				vertices = GraphTools.push(vertices, v1);
+			}
+			if(!GraphTools.containsVertex(vertices, v2)) {
+				vertices = GraphTools.push(vertices, v2);
+			}
+		}
+		this.vertices = vertices;
+		vertexSum = vertices.length;
+		edgeSum = edges.length;
 		createAdjacencyMatrix();
 	}
 	
@@ -61,20 +81,45 @@ public class Subgraph extends Graph {
 		return false;
 	}
 	
-	protected void calculateComponents() {
+	protected void calculateComponents(boolean storeComponents) {
 		createAdjacencyMatrix();
 		initializeDistanceMatrix();
 		initializePathMatrix();
 		calculateDistancePathMatrix();
-		if(!isCohesive) {			
-			Vector[] pathMatch = pathMatrix.fetchEqualRows();
-			pathMatch = GraphTools.removeDuplicates(pathMatch);
-			int[][] componentIndizes = new int[pathMatch.length][0];
-			for(int i = 0; i < pathMatch.length; i++) {
-				componentIndizes[i] = pathMatch[i].getIndizesof(1);
+		if(!storeComponents) {
+			if(!isCohesive) {			
+				Vector[] pathMatch = pathMatrix.fetchEqualRows();
+				pathMatch = GraphTools.removeDuplicates(pathMatch);
+				int[][] componentIndizes = new int[pathMatch.length][0];
+				for(int i = 0; i < pathMatch.length; i++) {
+					componentIndizes[i] = pathMatch[i].getIndizesof(1);
+				}
+				
+				this.componentAmount = pathMatch.length;
 			}
-			
-			this.componentAmount = pathMatch.length;
+		}else {
+			if(isCohesive) {
+				components = new Subgraph[1]; 
+				components[0] = new Subgraph(vertices,edges);
+				componentAmount = 1;
+			}else {			
+				Vector[] pathMatch = pathMatrix.fetchEqualRows();
+				pathMatch = GraphTools.removeDuplicates(pathMatch);
+				int[][] componentIndizes = new int[pathMatch.length][0];
+				for(int i = 0; i < pathMatch.length; i++) {
+					componentIndizes[i] = pathMatch[i].getIndizesof(1);
+				}
+				
+				this.componentAmount = pathMatch.length;
+				this.components = new Subgraph[componentAmount];
+				for(int i = 0; i < componentAmount; i++) {
+					Vertex[] v = new Vertex[componentIndizes[i].length];
+					for(int j = 0; j < componentIndizes[i].length; j++) {
+						v[j] = vertices[componentIndizes[i][j]];
+					}
+					this.components[i] = new Subgraph(v);
+				}
+			}
 		}		
 	}
 	
@@ -92,7 +137,7 @@ public class Subgraph extends Graph {
 	}
 	
 	public void calculateAll() {
-		calculateComponents();
+		calculateComponents(false);
 		
 	}
 

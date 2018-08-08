@@ -17,7 +17,7 @@ public class Graph {
 	//Store vertices and edges here
 	protected Vertex[] vertices;
 	protected Edge[] edges;
-	private Edge[] eulerPath;
+	private EulerPath eulerPath;
 	protected Matrix[] adjacencyMatrizes; //Adjacency Matrix at Index 0, exponentialmatrizes onwards, where Index + 1 = exponent
 	protected Matrix pathMatrix;
 	protected Matrix distanceMatrix;
@@ -30,6 +30,7 @@ public class Graph {
 	protected int edgeSum = 0; //Total number of edges
 	protected Subgraph[] components;
 	protected int componentAmount = 1;
+	private String error = "";
 
 	/*
 	 * ************************************************************************
@@ -49,11 +50,6 @@ public class Graph {
 	 */
 	public Graph(Matrix m) {
 		drawFromMatrix(m);
-		if(vertexSum > 2)
-			adjacencyMatrizes = new Matrix[vertexSum -1];
-		else
-			adjacencyMatrizes = new Matrix[1];
-		adjacencyMatrizes[0] = m;
 		
 	}
 	
@@ -84,6 +80,16 @@ public class Graph {
 	 * ************************************************************************
 	 */
 	
+	public Edge[] getEulerPath() {
+		return eulerPath.getPath();
+	}
+	public Edge[] getEdges() {
+		return edges;
+	}
+	
+	public Vertex[] getVertices() {
+		return vertices;
+	}
 	public Vertex[] getArticulations() {
 		Vertex[] arts = new Vertex[0];
 		for (int i = 0; i < vertices.length; i++) {
@@ -172,6 +178,19 @@ public class Graph {
 		return this.componentAmount;
 	}
 	
+	public Subgraph[] getComponents() {
+		return components;
+	}
+	
+	private boolean edgeExists(Vertex vertex, Vertex vertex2) {
+		for (Edge e: edges) {
+			if(e.connects(vertex, vertex2)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	
 	
 	/*
@@ -222,9 +241,9 @@ public class Graph {
 					for(int i = 0; i < vertexSum; i++) {
 						for(int j = i; j < vertexSum; j++) {
 							if(changeMap.getBinMatrix()[i][j]) {
-								if(m.getValueAt(i, j) == 1) {
+								if(m.getValueAt(i, j) == 1 && !edgeExists(getVertex(i+1), getVertex(j+1))) {
 									addEdge(getVertex(i+1), getVertex(j+1));
-								}else {
+								}else if (m.getValueAt(i, j) == 0 && edgeExists(getVertex(i+1), getVertex(j+1))){
 									deleteEdge(getEdge(getVertex(i+1), getVertex(j+1)));
 								}
 							}
@@ -260,6 +279,7 @@ public class Graph {
 		}
 		adjacencyMatrizes = new Matrix[m.size];
 		adjacencyMatrizes[0] = m;
+		edgeSum = edges.length;
 		if(recalculate) {
 			calculateAll();
 		}
@@ -267,6 +287,8 @@ public class Graph {
 	
 	
 
+
+	
 
 	/**
 	 * Adds a new vertex
@@ -402,102 +424,79 @@ public class Graph {
 	}
 	
 	public void findEulerPath() {
-		int startingVertex = -1;
-		int endingVertex = -1;
-		if(isEulerClosed()) {
-			startingVertex = 1;
-			endingVertex = 1;
-		}else if(isEulerOpen()) {
-			int vertexCount = 0;
-			while(startingVertex == -1 || endingVertex == -1) {
-				if(vertices[vertexCount].getDegree()%2 != 0) {
-					if (startingVertex < 0) {
-						startingVertex = vertices[vertexCount].getName();
+		try {
+			EulerPath eulerPath = new EulerPath(vertices,edges);
+			this.eulerPath = eulerPath;
+		} catch(InputGraphNotCohesiveException ex) {
+			error = ex.getMessage();
+		}catch(EulerNotPossibleException ex) {
+			error = ex.getMessage();
+		}catch(PathException ex) {
+			error = ex.getMessage();
+		}
+		/*
+		//0. Prüfen, ob euler überhaupt möglich ist und unterscheiden, zwischen geschlossen und offen
+		if(isCohesive && getUnevenDegreeAmount() < 3) {
+			if(getUnevenDegreeAmount() == 0) {
+				eulerPath = assembleClosedEulerPath(edges,vertices[0]);
+			} else {
+				//1. Teilgraph erstellen ohne Brücken, Brücken separat speichern
+				Edge[] edgesWithoutBridges = new Edge[edgeSum-getBridgeAmount()];
+				Edge[] bridges = new Edge[getBridgeAmount()];
+				int idxA = 0;
+				int idxB = 0;
+				for(int i = 0; i < edgeSum; i++) {
+					if(!edges[i].isBridge()) {
+						edgesWithoutBridges[idxA] = edges[i];
+						idxA++;
 					}else {
-						endingVertex = vertices[vertexCount].getName();
+						bridges[idxB] = edges[i];
+						idxB++;
+					}
+				}				
+				
+				Subgraph bridgelessSubgraph = new Subgraph(vertices,edgesWithoutBridges);
+				
+				//2. Komponenten berechnen und als Untergraphen speichern
+				
+				bridgelessSubgraph.calculateComponents(true);
+				
+				//3. Von jeder einzelnen Komponente den eulerschen weg erstellen
+				Edge[] partitionedClosedEulers = new Edge
+				for(Subgraph c:bridgelessSubgraph.getComponents()) {
+					if (c.isCohesive) {
+						
 					}
 				}
-				vertexCount++;
+				//4. Brücken so anordnen, dass sie start und endpunkt und eine verbindung zu dne komponenten herstellen
 			}
 		}
+		*/
 		
-		if(startingVertex > 0) {
-			// Copy all Edges
-			Edge[] eulerBuilder = new Edge[edgeSum];
-			for(int i = 0; i < edgeSum; i++) {
-				eulerBuilder[i] = edges[i];
-			}
-			
-			//Pick the first edge at startingVertex
-			int vertindex = getIndexOf(startingVertex);
-			eulerPath = new Edge[edgeSum];
-			eulerPath[0] = vertices[vertindex].getEdge(0);
-			
-			//delete it from the eulerBuilder
-			eulerBuilder = GraphTools.delete(eulerBuilder, eulerPath[0]);
-			
-			//Build a path until there are no edges left in the eulerBuilder
-			Vertex pathPosition = eulerPath[0].getOppositeVertex(vertices[getIndexOf(startingVertex)]);
-			int pathLength = 1;
-			while(eulerBuilder.length > 1) {
-				boolean nextEdge = false;
-				int edgeCounter = 0;
-				while(!nextEdge) {
-					if(GraphTools.hasValue(eulerBuilder, pathPosition.getEdge(edgeCounter))) {
-						if(pathPosition.getEdge(edgeCounter).getOppositeVertex(pathPosition) == getVertex(endingVertex) && 
-								GraphTools.countVertex(eulerBuilder,getVertex(endingVertex)) <= 1) {
-							edgeCounter++;
-						}else {
-							eulerPath[pathLength] = pathPosition.getEdge(edgeCounter);
-							eulerBuilder = GraphTools.delete(eulerBuilder, pathPosition.getEdge(edgeCounter));
-							pathPosition = eulerPath[pathLength].getOppositeVertex(pathPosition);
-							pathLength++;
-							nextEdge = true;
-						}
-					}else {
-						edgeCounter++;
-					}
-				}
-			}
-			eulerPath[pathLength] = eulerBuilder[0];
-		}
+		
 		
 	}
 	
-	public boolean isEulerClosed() {
+	
+
+	public int getUnevenDegreeAmount() {
 		int unevenDegreeCounter = 0;
-		int vertexCount = 0;
-		if(isCohesive) {
-			while(unevenDegreeCounter == 0) {
-				if(vertexCount >= vertexSum) {
-					return true;
-				}
-				if(vertices[vertexCount].getDegree()%2 != 0) {
-					unevenDegreeCounter++;
-				}
-				vertexCount++;
-				
+		for (Vertex v: vertices) {
+			if(v.getDegree()%2 != 0) {
+				unevenDegreeCounter++;
 			}
 		}
-		return false;
+		return unevenDegreeCounter;
 	}
 	
-	public boolean isEulerOpen() {
+	public static int getUnevenDegreeAmount(Vertex[] vertices) {
 		int unevenDegreeCounter = 0;
-		int vertexCount = 0;
-		if(isCohesive && !isEulerClosed()) {
-			while(unevenDegreeCounter <= 2) {
-				if(vertexCount >= vertexSum) {
-					return true;
-				}
-				if(vertices[vertexCount].getDegree()%2 != 0) {
-					unevenDegreeCounter++;
-				}
-				vertexCount++;
-				
+		for (Vertex v: vertices) {
+			if(v.getDegree()%2 != 0) {
+				unevenDegreeCounter++;
 			}
 		}
-		return false;
+		return unevenDegreeCounter;
 	}
 	
 	public void calculateBlocks() {
@@ -696,7 +695,7 @@ public class Graph {
 		calculateEccentricities();
 		findArticulations();
 		findBridges();
-		//findEulerPath();
+		findEulerPath();
 		
 	}
 	
@@ -790,50 +789,78 @@ public class Graph {
 	
 	public String toString() {
 		String text = "";
-		text += "Anzahl der Knoten: "+vertexSum+", Anzahl der Kanten: "+edgeSum+"\n\n";
-		text += "Zusammenhï¿½ngend: \t";
+		text += "Anzahl der Knoten: \t\t"+vertexSum+"\nAnzahl der Kanten: \t\t"+edgeSum+"\n\n";
+		text += "Zusammenhaengend: \t";
 		if(isCohesive) {
 			text += "Ja";
-			text += "\n \n Radius: \t"+radius;
-			text += "\n \n Durchmesser: \t" + diameter;
+			text += "\n \nRadius: \t\t\t\t"+radius;
+			text += "\n \nDurchmesser: \t\t\t" + diameter;
 			
-			text += "\n \n Zentrum: {";
-			for (int l = 0; l < vertexSum; l++) {
-				if(vertices[l].isCenter()) {
-					text += vertices[l].getName() + ",";
+			text += "\n \nZentrum: \t\t\t\t{";
+			Vertex[] center = new Vertex[0];
+			for (int i = 0; i < vertexSum; i++) {
+				if(vertices[i].isCenter()) {
+					center = GraphTools.push(center, vertices[i]);
+				}
+			}
+			for (int i = 0; i < center.length; i++) {
+				if(i == center.length-1) {
+					text += center[i].getName();
+				}else {
+					text += center[i].getName() + " , ";
 				}
 			}
 			text += "}";
+			text += "\n\nEuler'sche Linie: ";
 			if(eulerPath != null) {
-				if(isEulerClosed())
-					text += "\n \n Geschlossener Eulerscher Weg: \n{";
+				if(getUnevenDegreeAmount() == 0)
+					text += "\t\t geschlossen\n";
 				else
-					text += "\n \n Offener Eulerscher Weg: \n{";
-				for(Edge e : eulerPath) {
-					text += e+" , ";
-				}
+					text += "\t\t offen\n";
+				text += eulerPath;
 				text += "}";
 			}else {
-				text += "\n \n Kein Euler'scher Weg mÃ¶glich";
+				text += "\t\t nicht möglich\n"+error;
 			}
 		}else {
 			text += "Nein";
-			text += "\n \n Anzahl Komponenten: " + componentAmount;
+			text += "\n \nAnzahl Komponenten: \t" + componentAmount;
+		}
+		int articulationAmount = getArticulationAmount();
+		text += "\n \nArtikulationen: \t\t";
+		if(articulationAmount == 0) {
+			text += "Keine";
+		}else {
+			text += articulationAmount+"\n{";
+			Vertex[] arts = getArticulations();
+			for(int i = 0; i < arts.length; i++) {
+				if(i==arts.length-1) {
+					text += arts[i];
+				}else {
+					text += arts[i]+" , ";
+				}				
+			}
+			text += "}";
 		}
 		
-		text += "\n \n Artikulationen: "+getArticulationAmount()+"\n{";
-		Vertex[] arts = getArticulations();
-		for(int i = 0; i < arts.length; i++) {
-			text += arts[i]+",";
+		int bridgeAmount = getBridgeAmount();
+		text += "\n \nBruecken: \t\t\t";
+		if(bridgeAmount == 0) {
+			text += "Keine";
+		}else {
+			text += bridgeAmount+"\n{";
+			Edge[] bridges = getBridges();
+			for (int i = 0; i < bridges.length; i++) {
+				if(i == bridges.length-1) {
+					text += bridges[i];
+				}else {
+					text += bridges[i]+" , ";
+				}
+				
+			}
+			text += "}";
 		}
-		text += "}";
 		
-		text += "\n \n Brï¿½cken: "+getBridgeAmount()+"\n{";
-		Edge[] bridges = getBridges();
-		for (int i = 0; i < bridges.length; i++) {
-			text += bridges[i]+",";
-		}
-		text += "}";
 		
 		
 		/*

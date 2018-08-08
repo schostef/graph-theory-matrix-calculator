@@ -26,19 +26,25 @@ public class ModuleMatrix extends GridPane {
 		
 	}
 	
-	public ModuleMatrix(Matrix matrix) {
+	public ModuleMatrix(Matrix matrix, boolean readonly) {
 		super();
-		readonly = true;
+		this.readonly = readonly;
 		this.size = matrix.size;
-		indexLabels = new IndexLabel[size][size];
-		createReadOnlyMatrix(matrix);
+		if(readonly) {
+			indexLabels = new IndexLabel[size][size];
+			createReadOnlyMatrix(matrix);
+		}else {
+			createEditableMatrix(matrix);
+		}
+		
 		
 	}
 
 	private void createReadOnlyMatrix(Matrix matrix) {
+		char[][] m = matrix.convertToChar();
 		for(int i = 0; i < size; i ++) {
 			for(int j = i ; j < size; j++) {
-				IndexLabel l1 = new IndexLabel(Integer.toString(matrix.getValueAt(i, j)),i,j);
+				IndexLabel l1 = new IndexLabel(Character.toString(m[i][j]),i,j);
 				IndexLabel l2 = l1.createMirroredObject();
 				l1.setPrefSize(20, 20);
 				l1.setAlignment(Pos.CENTER);
@@ -64,10 +70,58 @@ public class ModuleMatrix extends GridPane {
 		
 	}
 	
+	public void createEditableMatrix(Matrix matrix) {
+		for(int j = 0; j < size; j++) {
+			IndexLabel l = new IndexLabel(""+(j+1),j,0);
+			IndexLabel l2 = l.createMirroredObject();
+			l.setPrefSize(20, 20);
+			l2.setPrefSize(20, 20);
+			l.setAlignment(Pos.BASELINE_CENTER);
+			l2.setAlignment(Pos.BASELINE_CENTER);
+			add(l,j+1,0);
+			add(l2,0,j+1);
+		}
+		
+		for(int i = 0; i < size; i++) {
+			for(int j = i; j < size; j++) {
+				IndexButton b1 = new IndexButton(i,j);
+				b1.setText(Integer.toString(matrix.getValueAt(i, j)));
+				IndexButton b2 = b1.createMirroredObject();
+				if(i == j) {
+					b1.setDisable(true);
+					indexButtons[i][i] = b1;
+					add(b1, i+1, i+1);
+				}else {
+					indexButtons[i][j] = b1;
+					indexButtons[j][i] = b2;
+					add(b2, i+1, j+1);
+					add(b1, j+1, i+1);
+					
+					indexButtons[i][j].setOnAction(event -> {
+						flipButtons(b1.getRow(),b1.getCol());						
+					});
+					
+					indexButtons[j][i].setOnAction(event -> {
+						flipButtons(b2.getRow(),b2.getCol());
+					});
+				}
+			}
+		}
+	}
+	
 
 	private void createEditableMatrix(int startFrom) {
 		int stepper = 0;
-		
+		for(int j = startFrom; j < size; j++) {
+				IndexLabel l = new IndexLabel(""+(j+1),j,stepper);
+				IndexLabel l2 = l.createMirroredObject();
+				l.setPrefSize(20, 20);
+				l2.setPrefSize(20, 20);
+				l.setAlignment(Pos.BASELINE_CENTER);
+				l2.setAlignment(Pos.BASELINE_CENTER);
+				add(l,j+1,stepper);
+				add(l2,stepper,j+1);
+		}
 		for(int i = startFrom; i < size; i ++) {
 			if(startFrom == 0) {
 				stepper = i;
@@ -80,43 +134,24 @@ public class ModuleMatrix extends GridPane {
 				if(i == stepper) {
 					b1.setDisable(true);
 					indexButtons[i][i] = b1;
-					add(b1, i, i);
-					System.out.println("Button: "+b1+" erzeugt");
+					add(b1, i+1, i+1);
 				}else {
 					//!!! Attention !!!
 					//My System = [row Index] [column Index]
 					//JavaFx Gridpane = [column Index] [row Index]
-					
 					indexButtons[i][stepper] = b1;
 					indexButtons[stepper][i] = b2;
-					add(b2, i, stepper);
+					add(b2, i+1, stepper+1);
 					//System.out.println("Button: "+b2+" erzeugt");
-					add(b1, stepper, i);
+					add(b1, stepper+1, i+1);
 					//System.out.println("Button: "+b1+" erzeugt");
 					
 					indexButtons[i][stepper].setOnAction(event -> {
-						flipButtons(b1.getRow(),b1.getCol());
-						Vertex v1 = app.getGraph().getVertex(b1.getRow()+1);
-						Vertex v2 = app.getGraph().getVertex(b1.getCol()+1);
-						if(Integer.parseInt(b1.getText()) == 1) {
-							app.getGraph().addEdge(v1,v2);
-						}else {
-							app.getGraph().deleteEdge(app.getGraph().getEdge(v1,v2));
-						}
-						app.refreshGraph();
-						
+						flipButtons(b1.getRow(),b1.getCol());						
 					});
 					
 					indexButtons[stepper][i].setOnAction(event -> {
 						flipButtons(b2.getRow(),b2.getCol());
-						Vertex v1 = app.getGraph().getVertex(b2.getRow()+1);
-						Vertex v2 = app.getGraph().getVertex(b2.getCol()+1);
-						if(Integer.parseInt(b1.getText()) == 1) {
-							app.getGraph().addEdge(v1,v2);
-						}else {
-							app.getGraph().deleteEdge(app.getGraph().getEdge(v1,v2));
-						}
-						app.refreshGraph();
 					});
 					
 				}
@@ -124,7 +159,7 @@ public class ModuleMatrix extends GridPane {
 			}
 			
 		}
-		app.refreshGraph();
+		//app.refreshGraph();
 		//redraw();
 		
 	}
@@ -160,32 +195,14 @@ public class ModuleMatrix extends GridPane {
 				}
 			}
 			
-			for(int i = 0; i < (newSize - oldSize); i++) {
-				app.getGraph().addVertex();
-			}
 			indexButtons = tempArr;
 			createEditableMatrix(oldSize);
 		}else {
 			getChildren().clear();
-			for(int i = 0; i < size; i++) {
-				for(int j = 0; j < size; j++) {
-					tempArr[i][j] = indexButtons[i][j];
-				}
-			}
-			indexButtons = tempArr;
-			for(int i = 0; i < size; i++) {
-				for(int j = 0; j < size; j++) {
-					add(indexButtons[i][j],j,i);
-				}
-			}
+			createEditableMatrix(translateToMatrix());
 			
-			for(int i = oldSize; i > newSize; i--) {
-				app.getGraph().deleteVertex(app.getGraph().getVertex(i));
-			}
+		
 		}
-		
-		app.refreshGraph();
-		
 	}
 	
 	private void flipButtons(int i, int j) {
@@ -198,12 +215,19 @@ public class ModuleMatrix extends GridPane {
 		int[][] arr = new int[size][size];
 		
 		for (int i = 0; i < size; i++) {
-			for (int j = 0; j < size; i++) {
+			for (int j = 0; j < size; j++) {
 				arr[i][j] = Integer.valueOf((indexButtons[i][j].getText()));
 			}
 		}
 		
 		return new Matrix(arr);
+	}
+	
+	public boolean consistencyCheck(Matrix m1) {
+		m1.vectorize();
+		Matrix m2 = translateToMatrix();
+		m2.vectorize();
+		return m1.isIdentical(m2);
 	}
 	
 	public void refreshMatrix(Matrix matrix) {

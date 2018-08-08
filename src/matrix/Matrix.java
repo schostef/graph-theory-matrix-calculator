@@ -461,6 +461,13 @@ public class Matrix {
 		return totalSum;
 	}
 	
+	public int[] getSumPerRows() {
+		int[] sums = new int[size];
+		for (int i = 0; i < size; i++) {
+			sums[i] = horizontalVectors[i].sumOf();
+		}
+		return sums;
+	}
 	/*
 	 * ********************************************************************
 	 */
@@ -523,7 +530,8 @@ public class Matrix {
 					currentCoordinate[0] = j;
 					for(int k = 0; k < currentRow.length; k++) {
 						currentCoordinate[1] = currentRow[k];
-						coordinates[entryNo]=currentCoordinate;
+						coordinates[entryNo][0]=j;
+						coordinates[entryNo][1]=currentCoordinate[1];
 						entryNo++;
 					}
 				}
@@ -807,6 +815,36 @@ public class Matrix {
 		}
 
 		return text;
+	}
+	
+	public char[][] convertToChar(){
+		char[][] c = new char[size][size];
+		int REDIX=10; 
+		
+		for(int i = 0; i < size; i++) {
+			for (int j = 0; j < size; j++) {
+				if(matrix[i][j] == -1) {
+					c[i][j] = '\u221E';
+				}else {
+					c[i][j] = Character.forDigit(matrix[i][j],REDIX);
+				}
+				    
+			}
+		}
+		
+		return c;
+	}
+	
+	public Matrix copy() {
+		Matrix m = new Matrix(size);
+		for(int i = 0; i < size; i++) {
+			for(int j = 0; j < size; j++) {
+				m.setValueAt(i, j, matrix[i][j]);
+			}
+		}
+		
+		m.vectorize();
+		return m;
 	}
 
 

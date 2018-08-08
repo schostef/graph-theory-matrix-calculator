@@ -89,6 +89,15 @@ public class Vector {
 		return binVector[index];
 	}
 	
+	public int getNext(int value) {
+		for(int i = 0; i < size; i++) {
+			if(vector[i] == value) {
+				return i;
+			}
+		}
+		return -1;
+	}
+	
 	/*
 	 * ************************************************************************
 	 */

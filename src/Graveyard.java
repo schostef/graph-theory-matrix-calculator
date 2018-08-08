@@ -1,7 +1,9 @@
 import arraytools.GraphTools;
 import graph.Edge;
+import graph.Graph;
 import graph.Path;
 import graph.Vertex;
+import javafx.concurrent.Task;
 
 public class Graveyard {
 	//Erstelle eine binäre Matrix um Nullen als true darzustellen
@@ -436,4 +438,31 @@ public class Graveyard {
 			
 			
 
+		}
+		
+		
+		public void refreshGraph() {
+			Task task = new Task<Void>() {
+				@Override public Void call() {
+					updateProgress(0.1, 1.0);
+					graph.createAdjacencyMatrix();
+					updateProgress(0.3, 1.0);
+					if(aMatrix.consistencyCheck(graph.getAdjacencyMatrix(1))) {
+						graph.calculateAll();
+						updateProgress(0.8, 1.0);
+					}else {
+						updateProgress(0.6,1.0);
+						graph = new Graph(aMatrix.translateToMatrix());
+					}
+					infoArea.setText(graph.toString());
+					return null;
+				}
+			};
+			
+			bar.progressProperty().bind(task.progressProperty());
+			new Thread(task).start();
+			if(task.isDone()) {
+				System.out.println("Task done");
+			}
+			
 		}
