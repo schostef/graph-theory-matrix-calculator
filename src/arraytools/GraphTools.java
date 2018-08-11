@@ -184,40 +184,19 @@ public class GraphTools {
 	public static Edge[] insert(Edge[] target, Edge[] source, int afterIndex) {
 		Edge[] result = new Edge[target.length+source.length];
 		int idx = 0;
-		if(afterIndex == 0) {
-			for(Edge e: source) {
-				result[idx] = e;
-				idx++;
-			}
-			for(Edge e: target) {
-				result[idx] = e;
-				idx++;
-			}
-		}else if(afterIndex == target.length-1) {
-			for(Edge e: target) {
-				result[idx] = e;
-				idx++;
-			}
-			
-			for(Edge e: source) {
-				result[idx] = e;
-				idx++;
-			}
-			
-		}else {
-			for(int i = 0; i <= afterIndex; i++) {
-				result[idx] = target[i];
-				idx++;
-			}
-			for(Edge e: source) {
-				result[idx] = e;
-				idx++;
-			}
-			for(int i = afterIndex+1; i < target.length; i++) {
-				result[idx] = target[i];
-				idx++;
-			}
+		for(int i = 0; i <= afterIndex; i++) {
+			result[idx] = target[i];
+			idx++;
 		}
+		for(Edge e: source) {
+			result[idx] = e;
+			idx++;
+		}
+		for(int i = afterIndex+1; i < target.length; i++) {
+			result[idx] = target[i];
+			idx++;
+		}
+	
 		
 		return result;
 	}
