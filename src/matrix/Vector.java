@@ -1,7 +1,7 @@
 /**
  * @author Stefan Schoeberl
- * @version 0.1
- * @modified 2018-03-23
+ * @version 1.0
+ * @modified 2018-08-09
  * 
  * @Class Vector
  * Used in relation to the Matrix class
@@ -12,7 +12,6 @@
 package matrix;
 
 import arraytools.ArrayTools;
-import arraytools.GraphTools;
 
 public class Vector {
 
@@ -21,9 +20,7 @@ public class Vector {
 	public int size;
 	
 	/*
-	 * *********************************************************************
 	 * Constructors
-	 * *********************************************************************
 	 */
 
 	/**
@@ -60,13 +57,11 @@ public class Vector {
 	}
 	
 	/*
-	 * ***********************************************************************
+	 * -> End Constructors
 	 */
 	
 	/*
-	 * ***********************************************************************
 	 * Getters
-	 * ***********************************************************************
 	 */
 	
 	public int[] getVector() {
@@ -81,31 +76,16 @@ public class Vector {
 		return binVector;
 	}
 	
-	public int getValueAt(int index) {
-		return vector[index];
-	}
-	
 	public boolean getBinValueAt(int index) {
 		return binVector[index];
 	}
 	
-	public int getNext(int value) {
-		for(int i = 0; i < size; i++) {
-			if(vector[i] == value) {
-				return i;
-			}
-		}
-		return -1;
-	}
-	
 	/*
-	 * ************************************************************************
+	 * -> End Getters
 	 */
 	
 	/*
-	 * ************************************************************************
 	 * Setters
-	 * ************************************************************************
 	 */
 	
 	public void setBinVector(boolean[] vector) {
@@ -118,13 +98,11 @@ public class Vector {
 	}
 	
 	/*
-	 * ************************************************************************
+	 * -> End Setters
 	 */
 	
 	/*
-	 * ************************************************************************
 	 * Control Mechanisms
-	 * ************************************************************************
 	 */
 	
 	/**
@@ -155,6 +133,11 @@ public class Vector {
 		return false;
 	}
 	
+	/**
+	 * Get the index, where a value is stored
+	 * @param x value to search for
+	 * @return array with index locations
+	 */
 	public int[] getPositionOfValue(int x) {
 		int[] list = new int[0];
 		for(int i = 0; i < size; i++) {
@@ -165,6 +148,14 @@ public class Vector {
 		return list;
 	}
 	
+	/**
+	 * Get the index, where a value is stored
+	 * @see getPositionOfValue(int x)
+	 * @param x value to search for
+	 * @param start checking from here
+	 * @param end until here (inclusive)
+	 * @return array with index locations
+	 */
 	public int[] getPositionOfValue(int start,int end,int x) {
 		int[] list = new int[0];
 		for(int i = start; i <= end; i++) {
@@ -177,7 +168,7 @@ public class Vector {
 	
 	/**
 	 * Search a int type vector for a value. If the value is found write the boolean value inside the binVector
-	 * @param vector int vecotor to search for
+	 * @param vector int vector to search for
 	 * @param value value to search for
 	 * @param binSet value of a success to write in the binVector
 	 */
@@ -194,61 +185,57 @@ public class Vector {
 		
 	}
 	
+	/**
+	 * Count how often a value appears
+	 * @param start start here
+	 * @param end until here (inclusive
+	 * @param value value to count
+	 * @return 
+	 */
 	public int countValue(int start, int end, int value) {
 		return getPositionOfValue(start, end, value).length;		
 	}
 	
+	/**
+	 * Count how often a value appears
+	 * @param value value to count
+	 * @return
+	 */
 	public int countValue(int value) {
 		return countValue(0,size,value);
-	}
-	
-	public int[] getIndizesof(int searchValue) {
-		int[] found = new int[0];
-		for(int i = 0; i < size; i++) {
-			if(vector[i] == searchValue) {
-				found = ArrayTools.push(found, i);
-			}
-		}
-		return found;
-	}
-	
+	}	
 	
 	/*
-	 * ************************************************************************
+	 * -> End Control Mechanisms
 	 */
 	
 	/*
-	 * ************************************************************************
 	 * Manipulators
-	 * ************************************************************************
 	 */
 	
+	/**
+	 * Fill the entire Vector with a given value
+	 * @param value
+	 */
 	public void fill (int value) {
 		vector = ArrayTools.fill(vector, value);
 	}
 	
+	/**
+	 * Delete a value out of the vector
+	 * @param index delete value at this index
+	 * @return Vector with size - 1
+	 */
 	public Vector remove(int index) {
 		return new Vector(ArrayTools.delete(vector,index));		
 	}
 	
-	
-	/**
-	 * @deprecated
-	 * @return
+	/*
+	 * -> End Manipulators
 	 */
-	public int rowSum() {
-		int sum = 0;
-		for (int i = 0; i < size; i++) {
-			sum += vector[i];
-		}
-		
-		return sum;
-	}
 	
 	/*
-	 * *********************************************************************************
 	 * Calculations
-	 * *********************************************************************************
 	 */
 	
 	/**
@@ -267,32 +254,30 @@ public class Vector {
 		return result;
 	}
 	
-	public int sumOf() {
-		return ArrayTools.sum(vector);
-	}
-	
-	public int sumOf(int fromIndex, int toIndex) {
-		return ArrayTools.sum(vector,fromIndex,toIndex);
-	}
-	
+	/**
+	 * Get the highest value
+	 * @return
+	 */
 	public int getMax() {
 		return ArrayTools.maxOf(vector);
 	}
 	
+	/**
+	 * Get the lowest value
+	 * @return
+	 */
 	public int getMin() {
 		return ArrayTools.minOf(vector);
 	}
 	
 	/*
-	 * *********************************************************************************
+	 * -> End Calculations
 	 */
 	
 	
 	
 	/*
-	 * *********************************************************************************
 	 * Output
-	 * *********************************************************************************
 	 */
 	
 	public String toString() {
@@ -308,19 +293,10 @@ public class Vector {
 		}
 		
 		return text;
-	}
-
-	
-
-	
-
-	
-
-	
-	
+	}	
 	
 	/*
-	 * **********************************************************************************
+	 * -> End Output
 	 */
 
 }

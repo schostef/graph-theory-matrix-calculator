@@ -1,10 +1,11 @@
 /**
  * @author Stefan Schoeberl
- * @version 0.1
- * @modified 2018-03-23
+ * @version 1.0
+ * @modified 2018-08-09
  * 
  * @Class Vertex
- * Graph related vertex operations
+ * Single Point inside a Graph.
+ * Stores information about it's degree, connected edges, center and isolation status
  */
 
 package graph;
@@ -14,35 +15,20 @@ import arraytools.*;
 public class Vertex {
 	
 	private int name = 0; 
-	//private char cName = 'A';
-	private String description = "";
-	private int posX = 0,posY = 0;
 	private int degree = 0; 
 	private boolean isIsolated = true;
 	private boolean isArticulation = false;
 	private boolean isCenter = false;
-	private boolean isVisited = false;
 	private Vertex[] neighbors; //Adjacent Vertices
 	private Edge[] edges; //Incident Edges
-	private Edge activeLane;
 
 	/*
-	 * ************************************************************
 	 * Constructors
-	 * ************************************************************
 	 */
-	/**
-	 * Names are mandatory.
-	 * Only use the Vertex(int) constructor
-	 * @see Vertex(int name)
-	 */
-	public Vertex() {
-		
-	}
 	
 	/**
-	 * Create a new Vertex
-	 * @param name 
+	 * Create a new Vertex. Names should be numeric and unique
+	 * @param name unique numeric name
 	 */
 	public Vertex(int name) {
 		this.name = name;
@@ -51,47 +37,32 @@ public class Vertex {
 	}
 	
 	/*
-	 * ************************************************************
+	 * -> End Constructors
 	 */
 	
 	/*
-	 * ************************************************************
 	 * Getters
-	 * ************************************************************
 	 */
 	
-	public Edge[] getUnvisitedEdges() {
-		Edge[] edges = new Edge[0];
-		for (int i = 0; i < this.edges.length; i++) {
-			if(!this.edges[i].isVisited()) {
-				edges = GraphTools.push(edges, this.edges[i]);
-			}
-		}
-		
-		return edges;
-	}
-	
+	/**
+	 * Returns if the vertex is an articulation. (Breaking the graph when removed)
+	 * @return Articulation
+	 */
 	public boolean isArticulation() {
 		return isArticulation;
 	}
 
+	/**
+	 * Returns if the vertex is part of the center.
+	 * Eccentricities need to be calculated beforehand
+	 * @return
+	 */
 	public boolean isCenter() {
 		return isCenter;
 	}
+	
 	public int getName() {
 		return name;
-	}
-	
-	public String getDescription() {
-		return description;
-	}
-	
-	public int getPosX() {
-		return posX;
-	}
-	
-	public int getPosY() {
-		return posY;
 	}
 	
 	public int getDegree() {
@@ -106,10 +77,19 @@ public class Vertex {
 		return isIsolated;
 	}
 	
+	/**
+	 * Get the adjacent vertices of this vertex
+	 * @return adjacent vertices
+	 */
 	public Vertex[] getNeighbors() {
 		return neighbors;
 	}
 	
+	/**
+	 * Get the edge that connects this vertex to the passed vertex
+	 * @param toVertex adjacent vertex
+	 * @return connecting edge between this vertex and toVertex
+	 */
 	public Edge getEdge(Vertex toVertex) {
 		for (int i = 0; i < edges.length; i++) {
 			if(toVertex.getName() == edges[i].getVertices()[0].getName() ||
@@ -124,47 +104,24 @@ public class Vertex {
 		return edges[index];
 	}
 	
+	/**
+	 * Get all incident edges
+	 * @return incident edges
+	 */
 	public Edge[] getAllEdges() {
 		return edges;
 	}
 	
-	public boolean hasEdge(Edge e) {
-		for (int i = 0; i< edges.length; i++) {
-			if(e.getID() == edges[i].getID()) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
 	/*
-	 * **************************************************************
+	 * -> End Getters
 	 */
 	
 	/*
-	 * **************************************************************
 	 * Setters
-	 * **************************************************************
 	 */	
-	
-	public void setVisited(boolean b) {
-		isVisited = b;
-	}
 	
 	public void setArticulation(boolean b) {
 		isArticulation = b;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
-	}	
-
-	public void setPosX(int posX) {
-		this.posX = posX;
-	}	
-
-	public void setPosY(int posY) {
-		this.posY = posY;
 	}	
 
 	public void setDegree(int degree) {
@@ -186,25 +143,20 @@ public class Vertex {
 	
 	
 	/*
-	 * **************************************************************
+	 * -> End Setters
 	 */
 	
 	/*
-	 * **************************************************************
 	 * Adjacency Operations
-	 * **************************************************************
 	 */
 	
 	/**
 	 * Add an adjacent Vertex as neighbor.
-	 * For proper use, this method should be called through the
-	 * Graph Class. No edge will be added calling this method.
+	 * An according edge needs to be added separately.
+	 * This function is best to be handled in the Graph class
 	 * @param v Vertex to be added as neighbor
 	 */
 	public void addNeighbor(Vertex v) {
-		//Vertex names (numbers) must be unique. Prevent duplicates.
-		// Afterwards increase degree by one and push the neighbor vertex to the
-		//neighbor array. Remove isolation flag.
 		if (!neighborExists(v)) {
 			Vertex[] tempNeighbor = GraphTools.push(neighbors,v);
 			checkIsolation();
@@ -214,6 +166,12 @@ public class Vertex {
 		
 	}
 	
+	/**
+	 * Remove an adjacent Vertex from the internal neighbor list
+	 * This function will not delete edges
+	 * Function should be handled through the Graph class
+	 * @param v Neighbor to delete
+	 */
 	public void deleteNeighbor(Vertex v) {
 		for(Vertex vn: neighbors) {
 			if(vn.getName() == v.getName()) {
@@ -222,29 +180,23 @@ public class Vertex {
 		}
 	}
 	
+	/**
+	 * Add an edge to the internal list and increase the degree by one.
+	 * @param e Edge to add
+	 */
 	public void addEdge(Edge e) {
 		edges = GraphTools.push(edges, e);
-		if(edges.length == 1) {
-			activeLane = e;
-		}
 		degree = edges.length;
-		//Edge[] tempEdges = push(e);
-		//edges = tempEdges;
 	}
 	
-	public Edge[] push(Edge e) {
-		Edge[] tempEdges = new Edge[edges.length+1];
-		for (int i = 0; i < edges.length; i++) {
-			tempEdges[i] = edges[i];
-		}
-		tempEdges[edges.length] = e;
-		return tempEdges;
-	}
-	
+	/**
+	 * Delete an edge from this vertex. Remove the neighbor and lower the degree
+	 * @param e
+	 */
 	public void deleteEdge(Edge e) {
 		boolean found = false;
 		for(int i = 0; i < edges.length && !found; i++) {
-			if(e.getID() == edges[i].getID()) {
+			if(e.isEqual(edges[i])) {
 				deleteNeighbor(e.getOppositeVertex(this));
 				edges = GraphTools.delete(edges, e);
 				e.getOppositeVertex(this).deleteEdge(e);	
@@ -254,13 +206,11 @@ public class Vertex {
 	}
 	
 	/*
-	 * ****************************************************************
+	 * -> End Adjacency Operations
 	 */
 	
 	/*
-	 * ****************************************************************
 	 * Controlling methods
-	 * ****************************************************************
 	 */
 	
 	/**
@@ -276,7 +226,7 @@ public class Vertex {
 		for(int i = 0; i < neighbors.length; i++) {
 			neighborNames[i] = neighbors[i].getName();
 		}
-		return ArrayTools.isDuplicate(neighborNames,v.getName());
+		return ArrayTools.contains(neighborNames,v.getName());
 	}
 	
 	/**
@@ -291,23 +241,17 @@ public class Vertex {
 	}
 	
 	/*
-	 * ****************************************************************
+	 * -> End Controlling methods
 	 */
 	
 	/*
-	 * ****************************************************************
 	 * Output Methods
-	 * ****************************************************************
 	 */
 	public String toString() {
-		String text = "";
-		for (int i = 0; i < edges.length; i++) {
-			text += edges[i].getName()+", ";
-		}
 		return ""+name;
 	}
 	
 	/*
-	 * *****************************************************************
+	 * -> Output Methods
 	 */
 }

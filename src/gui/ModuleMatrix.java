@@ -1,34 +1,43 @@
+/**
+ * @author Stefan Schoeberl
+ * @version 1.0
+ * @modified 2018-08-09
+ * 
+ * @Class ModuleMatrix
+ * Matrix GUI Element
+ */
 package gui;
 
-import graph.Vertex;
-import javafx.application.Application;
 import javafx.geometry.Pos;
-import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
-import javafx.scene.text.TextAlignment;
 import matrix.Matrix;
 
 public class ModuleMatrix extends GridPane {
 	
 	private IndexButton[][] indexButtons;
 	private IndexLabel[][] indexLabels;
-	private boolean readonly;
 	private int size;
-	private GraphCalc app;
 	
-	public ModuleMatrix(int size, GraphCalc app) {
+	/*
+	 * Constructors
+	 */
+	/**
+	 * Create a new ModuleMatrix Element with n Buttons
+	 * @param size Size of the Matrix
+	 */
+	public ModuleMatrix(int size) {
 		super();
-		this.app = app;
-		readonly = false;
 		this.size = size;
 		indexButtons = new IndexButton[size][size];
-		createEditableMatrix(0);
-		
+		createEditableMatrix(0);		
 	}
 	
+	/**
+	 * Create a new ModuleMatrix Element out of a given Matrix Object
+	 * @param readonly true for a Matrix with Labels, false for a Matrix with IndexButtons
+	 */
 	public ModuleMatrix(Matrix matrix, boolean readonly) {
 		super();
-		this.readonly = readonly;
 		this.size = matrix.size;
 		if(readonly) {
 			indexLabels = new IndexLabel[size][size];
@@ -39,7 +48,18 @@ public class ModuleMatrix extends GridPane {
 		
 		
 	}
+	
+	/*
+	 * -> End Constructors
+	 */
 
+	/*
+	 * GUI drawing
+	 */
+	/**
+	 * A Matrix with Labels.
+	 * @param matrix Matrix Object with values
+	 */
 	private void createReadOnlyMatrix(Matrix matrix) {
 		char[][] m = matrix.convertToChar();
 		for(int i = 0; i < size; i ++) {
@@ -65,11 +85,13 @@ public class ModuleMatrix extends GridPane {
 			}
 			
 		}
-		//redraw();
-		this.setGridLinesVisible(true);
-		
+		this.setGridLinesVisible(true);		
 	}
 	
+	/**
+	 * A Matrix with IndexButtons
+	 * @param matrix Matrix Object with values
+	 */
 	public void createEditableMatrix(Matrix matrix) {
 		for(int j = 0; j < size; j++) {
 			IndexLabel l = new IndexLabel(""+(j+1),j,0);
@@ -109,7 +131,10 @@ public class ModuleMatrix extends GridPane {
 		}
 	}
 	
-
+	/**
+	 * If the size of the Editable Matrix is increased, add the additional amount of buttons.
+	 * @param startFrom Start adding Buttons from this position
+	 */
 	private void createEditableMatrix(int startFrom) {
 		int stepper = 0;
 		for(int j = startFrom; j < size; j++) {
@@ -136,15 +161,10 @@ public class ModuleMatrix extends GridPane {
 					indexButtons[i][i] = b1;
 					add(b1, i+1, i+1);
 				}else {
-					//!!! Attention !!!
-					//My System = [row Index] [column Index]
-					//JavaFx Gridpane = [column Index] [row Index]
 					indexButtons[i][stepper] = b1;
 					indexButtons[stepper][i] = b2;
 					add(b2, i+1, stepper+1);
-					//System.out.println("Button: "+b2+" erzeugt");
 					add(b1, stepper+1, i+1);
-					//System.out.println("Button: "+b1+" erzeugt");
 					
 					indexButtons[i][stepper].setOnAction(event -> {
 						flipButtons(b1.getRow(),b1.getCol());						
@@ -159,30 +179,13 @@ public class ModuleMatrix extends GridPane {
 			}
 			
 		}
-		//app.refreshGraph();
-		//redraw();
-		
+	
 	}
 	
-	private void redraw() {
-		getChildren().clear();
-		
-		if(readonly) {
-			for(int i = 0; i < size; i++) {
-				for(int j = 0; j < size; j++) {
-					add(indexLabels[i][j],i,j);
-				}
-			}
-		}else {
-			for(int i = 0; i < size; i++) {
-				for(int j = 0; j < size; j++) {
-					add(indexButtons[i][j],i,j);
-				}
-			}
-		}
-		
-	}
-	
+	/**
+	 * Resize the editable Matrix.
+	 * @param newSize
+	 */
 	public void resizeEditableMatrix(int newSize) {
 		int oldSize = size;
 		this.size = newSize;
@@ -205,12 +208,30 @@ public class ModuleMatrix extends GridPane {
 		}
 	}
 	
+	/**
+	 * Flip a 0 to 1 and a 1 to 0 on the button and it's mirror along the diagonal
+	 * @param i X-index
+	 * @param j Y-index
+	 */
 	private void flipButtons(int i, int j) {
 		indexButtons[i][j].flip();
 		indexButtons[j][i].flip();
 		
 	}
+	
+	/*
+	 * -> End GUI drawing
+	 */
+	
+	
 
+	/*
+	 * Output
+	 */
+	/**
+	 * Create a Matrix object of the GUI Element
+	 * @return Matrix
+	 */
 	public Matrix translateToMatrix() {
 		int[][] arr = new int[size][size];
 		
@@ -223,33 +244,8 @@ public class ModuleMatrix extends GridPane {
 		return new Matrix(arr);
 	}
 	
-	public boolean consistencyCheck(Matrix m1) {
-		m1.vectorize();
-		Matrix m2 = translateToMatrix();
-		m2.vectorize();
-		return m1.isIdentical(m2);
-	}
-	
-	public void refreshMatrix(Matrix matrix) {
-		for(int i = 0; i < size; i ++) {
-			for(int j = i ; j < size; j++) {
-				
-				if(Integer.valueOf(indexLabels[i][j].getText()) != matrix.getValueAt(i, j)) {
-					if(i == j) {
-						indexLabels[i][i].setText(Integer.toString(matrix.getValueAt(i, i)));
-					}else {
-						indexLabels[i][j].setText(Integer.toString(matrix.getValueAt(i, j)));
-						indexLabels[j][i].setText(Integer.toString(matrix.getValueAt(j, i)));
-					}
-				}
-				
-			}
-			
-		}
-	}
-	
-	public void resize(int size) {
-		
-	}
+	/*
+	 * -> End Output
+	 */
 	
 }

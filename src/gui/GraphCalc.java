@@ -1,21 +1,24 @@
+/**
+ * @author Stefan Schoeberl
+ * @version 1.0
+ * @modified 2018-08-09
+ * 
+ * @Class GraphCalc
+ * Main Application
+ */
+
 package gui;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.security.Timestamp;
-import java.sql.Time;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Random;
 
 import graph.Graph;
 import javafx.application.Application;
-import javafx.concurrent.Task;
-import javafx.event.EventType;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
@@ -24,19 +27,28 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.stage.Popup;
 import javafx.stage.Stage;
 import matrix.Matrix;
 
 public class GraphCalc extends Application {
-
+	
+	/*
+	 * Config
+	 */
 	private static final int VERTEX_MIN = 3;
 	private static final int VERTEX_MAX = 15;
 	private static final int VERTEX_INIT = 5;
+	private static final double MAIN_WINDOW_X_POSITION = 50.0;
+	private static final double MAIN_WINDOW_Y_POSITION = 50.0;
+	private static final double MAIN_WINDOW_X_SIZE = 1280.0;
+	private static final double MAIN_WINDOW_Y_SIZE = 720.0;
+	private static final String MAIN_WINDOW_TITLE = "Graphen Kalkulation";
+	/*
+	 * -> End Config
+	 */	
 	
 	private Graph graph;
 	private BorderPane mainWindow;
@@ -51,42 +63,39 @@ public class GraphCalc extends Application {
 	private Random rand = new Random();
 	PrintWriter out; 
 
+	
 	@Override
 	public void start(Stage primaryStage) {
-		
+		//Menu Bar
 		mainWindow = new BorderPane();
-		MenuBar menuBar = new MenuBar();
-		
-		
+		MenuBar menuBar = new MenuBar();		
 		Menu menuFile = new Menu("Datei");
 		MenuItem mNew = new MenuItem("Neuer Graph");
 		MenuItem mRand = new MenuItem("Neuer Zufallsgraph");
 		menuFile.getItems().add(mNew);
-		menuFile.getItems().add(mRand);
-				
+		menuFile.getItems().add(mRand);				
+		menuBar.getMenus().add(menuFile);		
+		mainWindow.setTop(menuBar);
 		mNew.setOnAction(event -> {
 			initializeGraphWindow();
-		});
-		
+		});		
 		mRand.setOnAction(event -> {
 			initializeRandomGraphWindow();
 		});
-				
-		menuBar.getMenus().add(menuFile);
 		
-		mainWindow.setTop(menuBar);		
-		
+		//Text Area for Graph information
 		infoArea = new TextArea();
 		infoArea.setEditable(false);
 		mainWindow.setCenter(infoArea);		
 		
+		//Stage
 		primaryStage.setScene(new Scene(mainWindow));
 		primaryStage.show();
-		primaryStage.setTitle("Graph Kalkulation");
-		primaryStage.setX(50);
-		primaryStage.setY(50);
-		primaryStage.setHeight(720);
-		primaryStage.setWidth(1280);
+		primaryStage.setTitle(MAIN_WINDOW_TITLE);
+		primaryStage.setX(MAIN_WINDOW_X_POSITION);
+		primaryStage.setY(MAIN_WINDOW_Y_POSITION);
+		primaryStage.setHeight(MAIN_WINDOW_Y_SIZE);
+		primaryStage.setWidth(MAIN_WINDOW_X_SIZE);
 		try {
 			out = new PrintWriter(new BufferedWriter(new FileWriter("graph.log")));
 		} catch (IOException e) {
@@ -95,11 +104,22 @@ public class GraphCalc extends Application {
 		}
 	}
 	
+	/*
+	 * Getters
+	 */
 	public Graph getGraph() {
 		return graph;
 	}
 	
+	/*
+	 * -> End Getters
+	 */
+	
+	/**
+	 * Create a random Graph
+	 */
 	private void initializeRandomGraphWindow() {
+		//Randomize an adjacency Matrix
 		int mSize = rand.nextInt(13);
 		mSize += 3;
 		int[][] mFill = new int[mSize][mSize];
@@ -115,26 +135,18 @@ public class GraphCalc extends Application {
 		}
 		Matrix matrix = new Matrix(mFill);
 		
-		aMatrix = new ModuleMatrix(mSize,this);
+		//Put the adjacency Matrix, calculate and randomize button on the left side of the Borderpane
+		aMatrix = new ModuleMatrix(mSize);
 		aMatrix.createEditableMatrix(matrix);
-		dMatrix = new ModuleMatrix(new Matrix(mSize),true);
-		pMatrix = new ModuleMatrix(new Matrix(mSize),true);
-		vbD = new VBox(lDMatrix,dMatrix);
-		vbP = new VBox(lPMatrix,pMatrix);
-		dpMatrix = new ArrayList<>();
 		calculateButton = new Button("Berechnen");
 		Button shuffleButton = new Button("Zufall");
 		Spinner<Integer> vertexAmount = new Spinner<>(VERTEX_MIN, VERTEX_MAX, mSize);
 		HBox buttons = new HBox(calculateButton,shuffleButton);
 		matrixBox = new VBox(buttons,vertexAmount,aMatrix);
-		dpMatrixBox = new VBox();
-		dpMatrixBox.getChildren().addAll(dpMatrix);
 		
 		vertexAmount.valueProperty().addListener(event -> {
 			aMatrix.resizeEditableMatrix(vertexAmount.getValue());
 		});
-		mainWindow.setLeft(matrixBox);
-		mainWindow.setRight(dpMatrixBox);
 		
 		calculateButton.setOnAction(event -> {
 			graph = new Graph(aMatrix.translateToMatrix());
@@ -142,7 +154,7 @@ public class GraphCalc extends Application {
 		});
 		
 		shuffleButton.setOnAction(event -> {
-			/* Tausend Graphen Test:
+			/* Thousand graph test
 			for(int i = 0; i < 1000; i++) {
 				long start = System.currentTimeMillis();
 				initializeRandomGraphWindow();
@@ -155,46 +167,69 @@ public class GraphCalc extends Application {
 					out.println(graph.getAdjacencyMatrix(1));
 					out.println("-----------------------------");
 					out.println(graph+"\n\n");
-				}
-				
+				}				
 			}
-			*/
-			
+			*/			
 			initializeRandomGraphWindow();
 			
 		});
 		
-		graph = new Graph(matrix);
-		refreshGraph();
+		//Put distance and Path Matrix on the right side of the borderpane
+		dMatrix = new ModuleMatrix(new Matrix(mSize),true);
+		pMatrix = new ModuleMatrix(new Matrix(mSize),true);
+		vbD = new VBox(lDMatrix,dMatrix);
+		vbP = new VBox(lPMatrix,pMatrix);
+		dpMatrix = new ArrayList<>();		
+		dpMatrixBox = new VBox();
+		dpMatrixBox.getChildren().addAll(dpMatrix);		
 		
+		//Attach to the borderpane
+		mainWindow.setLeft(matrixBox);
+		mainWindow.setRight(dpMatrixBox);
+		
+		//Create new Graph with random Matrix	
+		graph = new Graph(matrix);
+		refreshGraph();		
 	}
 
+	/**
+	 * Create a new empty custom Graph
+	 */
 	private void initializeGraphWindow() {
-		aMatrix = new ModuleMatrix(VERTEX_INIT,this);
+		//Adjacency Matrix with buttons and spinner
+		aMatrix = new ModuleMatrix(VERTEX_INIT);
+		calculateButton = new Button("Berechnen");
+		Spinner<Integer> vertexAmount = new Spinner<>(VERTEX_MIN, VERTEX_MAX, VERTEX_INIT);
+		matrixBox = new VBox(calculateButton,vertexAmount,aMatrix);
+		vertexAmount.valueProperty().addListener(event -> {
+			aMatrix.resizeEditableMatrix(vertexAmount.getValue());
+		});
+		
+		//When button calculate is pressed make a new graph
+				calculateButton.setOnAction(event -> {
+					graph = new Graph(aMatrix.translateToMatrix());
+					refreshGraph();
+				});
+		
+		
+		//Path and distance matrix		
 		dMatrix = new ModuleMatrix(new Matrix(VERTEX_INIT),true);
 		pMatrix = new ModuleMatrix(new Matrix(VERTEX_INIT),true);
 		vbD = new VBox(lDMatrix,dMatrix);
 		vbP = new VBox(lPMatrix,pMatrix);
-		dpMatrix = new ArrayList<>();
-		calculateButton = new Button("Berechnen");
-		Spinner<Integer> vertexAmount = new Spinner<>(VERTEX_MIN, VERTEX_MAX, VERTEX_INIT);
-		matrixBox = new VBox(calculateButton,vertexAmount,aMatrix);
+		dpMatrix = new ArrayList<>();		
 		dpMatrixBox = new VBox();
-		dpMatrixBox.getChildren().addAll(dpMatrix);
+		dpMatrixBox.getChildren().addAll(dpMatrix);		
 		
-		vertexAmount.valueProperty().addListener(event -> {
-			aMatrix.resizeEditableMatrix(vertexAmount.getValue());
-		});
+		//Attach to borderpane
 		mainWindow.setLeft(matrixBox);
-		mainWindow.setRight(dpMatrixBox);
-		
-		calculateButton.setOnAction(event -> {
-			graph = new Graph(aMatrix.translateToMatrix());
-			refreshGraph();
-		});
+		mainWindow.setRight(dpMatrixBox);		
 		
 	}
 	
+	/**
+	 * Redraw the GUI elements
+	 */
 	public void refreshGraph() {
 		dpMatrixBox.getChildren().removeAll(dpMatrix);
 		dpMatrix.clear();
@@ -212,13 +247,10 @@ public class GraphCalc extends Application {
 		
 		infoArea.setText(graph.toString());
 		
-	}
-
-	
+	}	
 
 	public static void main(String[] args) {
 		launch(args);
 	}
-
 	
 }

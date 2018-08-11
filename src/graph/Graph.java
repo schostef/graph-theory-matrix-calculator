@@ -1,10 +1,12 @@
 /**
  * @author Stefan Schoeberl
- * @version 0.1
- * @modified 2018-03-23
+ * @version 1.0
+ * @modified 2018-08-09
  * 
  * @Class Graph
- * Main class of the Graph.
+ * Main class of the Graph. All Methods for adding, deleting Vertices and Edges, creating and translating an adjacency Matrix
+ * and all calculations are handled in this class. Editing can go in two ways. Either adding vertices and edges manually and
+ * creating an adjacency matrix afterwards. Or passing an adjacency matrix and edit the edge and vertex objects.
  */
 
 package graph;
@@ -14,28 +16,26 @@ import arraytools.GraphTools;
 import matrix.*;
 
 public class Graph {
-	//Store vertices and edges here
+	//Main components
 	protected Vertex[] vertices;
 	protected Edge[] edges;
-	private EulerPath eulerPath;
-	protected Matrix[] adjacencyMatrizes; //Adjacency Matrix at Index 0, exponentialmatrizes onwards, where Index + 1 = exponent
-	protected Matrix pathMatrix;
-	protected Matrix distanceMatrix;
-	protected Matrix controlMatrix;
-	protected Vector eccentricity;
-	protected int radius,diameter;
-	protected boolean isCohesive = true;
-	protected char name = 'G';
+	protected Matrix[] adjacencyMatrizes; //Adjacency Matrix at Index 0, Exponential Matrices onwards, where Index + 1 = exponent
 	protected int vertexSum = 0; //total number of Vertices
 	protected int edgeSum = 0; //Total number of edges
+	protected char name = 'G';
+	//From calculations
+	private EulerPath eulerPath;	
+	protected Matrix pathMatrix;
+	protected Matrix distanceMatrix;
+	protected Vector eccentricity;
+	protected int radius,diameter;
+	protected boolean isCohesive = true;	
 	protected Subgraph[] components;
 	protected int componentAmount = 1;
 	private String error = "";
 
 	/*
-	 * ************************************************************************
 	 * Constructors
-	 * ************************************************************************
 	 */
 	/**
 	 * Empty Graph
@@ -54,30 +54,11 @@ public class Graph {
 	}
 	
 	/*
-	 * ************************************************************************
-	 */
-	
-	
-	/**
-	 * Full reset. Clear all Vertices and Edges.
-	 * Delete all Matrizes.
-	 */
-	public void reinitialize() {
-		vertices = null;
-		edges = null;
-		adjacencyMatrizes = null;
-		controlMatrix = null;
-		vertexSum = 0;
-		edgeSum = 0;
-		vertices = new Vertex[0];
-		edges = new Edge[0];
-		adjacencyMatrizes = new Matrix[0];
-	}
+	 * -> End Constructors
+	 */	
 	
 	/*
-	 * ************************************************************************
 	 * Getters
-	 * ************************************************************************
 	 */
 	
 	public Edge[] getEulerPath() {
@@ -135,7 +116,12 @@ public class Graph {
 		}
 		return null;
 	}
-	
+	/**
+	 * Get the connecting edge between 2 vertices
+	 * @param vertex
+	 * @param vertex2
+	 * @return
+	 */
 	public Edge getEdge(Vertex vertex, Vertex vertex2) {
 		for(Edge e : edges) {
 			if(e.connects(vertex,vertex2)) {
@@ -162,10 +148,6 @@ public class Graph {
 		return distanceMatrix;
 	}
 	
-	public Matrix getControlMatrix() {
-		return controlMatrix;
-	}
-	
 	public int getRadius() {
 		return radius;
 	}
@@ -189,32 +171,49 @@ public class Graph {
 			}
 		}
 		return false;
+	}	
+	
+	public int getBridgeAmount() {
+		int bridgeCounter = 0;
+		for (int i = 0; i < edgeSum; i++) {
+			if(edges[i].isBridge()) {
+				bridgeCounter++;
+			}
+		}
+		return bridgeCounter;
 	}
 	
-	
+	public int getArticulationAmount() {
+		int articulationCounter = 0;
+		for (int i = 0; i < vertexSum; i++) {
+			if(vertices[i].isArticulation()) {
+				articulationCounter++;
+			}
+		}
+		return articulationCounter;
+	}
+	/*
+	 * -> End Getters
+	 */	
 	
 	/*
-	 * ************************************************************************
-	 */
-	
-	/*
-	 * ************************************************************************
-	 * Setters
-	 * ************************************************************************
-	 */
-	
-	
-	
-	/*
-	 * *************************************************************************
-	 */
-	
-	
-	/*
-	 * ************************************************************************
 	 * Dimension Manipulating/Drawing/Constructing Methods
-	 * ************************************************************************
 	 */
+	
+	/**
+	 * Full reset. Clear all Vertices and Edges.
+	 * Delete all Matrices.
+	 */
+	public void reinitialize() {
+		vertices = null;
+		edges = null;
+		adjacencyMatrizes = null;
+		vertexSum = 0;
+		edgeSum = 0;
+		vertices = new Vertex[0];
+		edges = new Edge[0];
+		adjacencyMatrizes = new Matrix[0];
+	}
 	
 	/**
 	 * Draws Vertices and Edges with a provided Adjacency Matrix.
@@ -283,28 +282,12 @@ public class Graph {
 		if(recalculate) {
 			calculateAll();
 		}
-	}
-	
-	
-
-
-	
+	}	
 
 	/**
-	 * Adds a new vertex
-	 * @param name
+	 * Add a series of new vertices
+	 * @param amount Amount of vertices to create
 	 */
-	/*
-	public void addVertex(int name) {
-		Vertex[] tV = GraphTools.expand(vertices);
-		tV[vertexSum + 1] = new Vertex(name);
-		vertices = tV;
-		//sortVertices();
-		vertexSum++;
-		createAdjacencyMatrix();
-	}
-	*/
-	
 	public void addVertex(int amount) {
 		for(int i = 0; i < amount; i++) {
 			addVertex();
@@ -312,7 +295,7 @@ public class Graph {
 	}
 	
 	/**
-	 * Adds a new vertex
+	 * Adds a new vertex. Names will be incremented
 	 */
 	public void addVertex() {
 		Vertex[] tV = GraphTools.expand(vertices);
@@ -326,11 +309,15 @@ public class Graph {
 	 */
 	public void addEdge(Vertex v1, Vertex v2) {
 		Edge[] tedge = GraphTools.expand(edges);
-		tedge[edges.length] = new Edge(edgeSum,v1,v2,"["+v1.getName()+","+v2.getName()+"]");
+		tedge[edges.length] = new Edge(v1,v2);
 		edges = tedge;
 		edgeSum++;
 	}	
 	
+	/**
+	 * Deletes a Vertex and all incident edges
+	 * @param v Vertex to delete
+	 */
 	public void deleteVertex(Vertex v) {
 		for(Edge e : v.getAllEdges()) {
 			deleteEdge(e);
@@ -339,6 +326,10 @@ public class Graph {
 		vertexSum--;
 	}
 	
+	/**
+	 * Deletes an Edge. Updates the information inside the connected vertices
+	 * @param e
+	 */
 	public void deleteEdge(Edge e) {
 		Vertex v1 = e.getVertices()[0];
 		v1.deleteEdge(e);
@@ -346,16 +337,16 @@ public class Graph {
 		edgeSum--;
 	}
 	
-	public Subgraph subgraphDeleteVertex(Vertex v) {
-		Subgraph sg = new Subgraph(vertices,edges);
-		sg.deleteVertex(v);
-		return sg;
-	}
-	
+	/**
+	 * Calculates the articulations in the current graph
+	 */
 	public void findArticulations() {
+		// By removing each Vertex and recalculating the component amount in a subgraph
+		// it can be determined if a vertex breaks the graph after being removed.
+		// Isolated vertices can be ignored
 		Subgraph[] subgraphs = new Subgraph[vertices.length];
 		
-		//Only check if Vertex is not isolated
+		//Check isolation and store the new sum of vertices
 		for (int i = 0; i < vertices.length; i++) {
 			if(!vertices[i].isIsolated()) {
 				Vertex[] reducedGraph = new Vertex[vertices.length-1];
@@ -367,6 +358,7 @@ public class Graph {
 					}
 				}
 				
+				// calculate the new component amount
 				subgraphs[i] = new Subgraph(reducedGraph);
 				subgraphs[i].calculateAll();
 				if(subgraphs[i].getComponentAmount() > this.componentAmount) {
@@ -376,14 +368,14 @@ public class Graph {
 				}
 			}
 		}
-		// For every Vertex, remove the vertex.
-		// Except for isolated ones.
-		// check components of the subgraph
-		// if it's more than before
-		// mark the vertex as articulation
 	}
 	
+	/**
+	 * Calculates the bridges in the current graph
+	 */
 	public void findBridges() {
+		//Remove each edge and recalculate the component amount
+		//Mark the edge if it breaks the graph
 		for(int i = 0; i < edgeSum; i++) {
 			Edge[] reducedGraph = new Edge[edgeSum-1];
 			int position = 0;
@@ -403,26 +395,13 @@ public class Graph {
 		}
 	}
 	
-	public int getBridgeAmount() {
-		int bridgeCounter = 0;
-		for (int i = 0; i < edgeSum; i++) {
-			if(edges[i].isBridge()) {
-				bridgeCounter++;
-			}
-		}
-		return bridgeCounter;
-	}
 	
-	public int getArticulationAmount() {
-		int articulationCounter = 0;
-		for (int i = 0; i < vertexSum; i++) {
-			if(vertices[i].isArticulation()) {
-				articulationCounter++;
-			}
-		}
-		return articulationCounter;
-	}
 	
+	/**
+	 * Attempt to find a Euler Path of the graph
+	 * Field eulerPath will store the path or remain null if there is no path possible
+	 * Field error will store the reason why no path is possible
+	 */
 	public void findEulerPath() {
 		try {
 			EulerPath eulerPath = new EulerPath(vertices,edges);
@@ -433,101 +412,18 @@ public class Graph {
 			error = ex.getMessage();
 		}catch(PathException ex) {
 			error = ex.getMessage();
-		}
-		/*
-		//0. Prüfen, ob euler überhaupt möglich ist und unterscheiden, zwischen geschlossen und offen
-		if(isCohesive && getUnevenDegreeAmount() < 3) {
-			if(getUnevenDegreeAmount() == 0) {
-				eulerPath = assembleClosedEulerPath(edges,vertices[0]);
-			} else {
-				//1. Teilgraph erstellen ohne Brücken, Brücken separat speichern
-				Edge[] edgesWithoutBridges = new Edge[edgeSum-getBridgeAmount()];
-				Edge[] bridges = new Edge[getBridgeAmount()];
-				int idxA = 0;
-				int idxB = 0;
-				for(int i = 0; i < edgeSum; i++) {
-					if(!edges[i].isBridge()) {
-						edgesWithoutBridges[idxA] = edges[i];
-						idxA++;
-					}else {
-						bridges[idxB] = edges[i];
-						idxB++;
-					}
-				}				
-				
-				Subgraph bridgelessSubgraph = new Subgraph(vertices,edgesWithoutBridges);
-				
-				//2. Komponenten berechnen und als Untergraphen speichern
-				
-				bridgelessSubgraph.calculateComponents(true);
-				
-				//3. Von jeder einzelnen Komponente den eulerschen weg erstellen
-				Edge[] partitionedClosedEulers = new Edge
-				for(Subgraph c:bridgelessSubgraph.getComponents()) {
-					if (c.isCohesive) {
-						
-					}
-				}
-				//4. Brücken so anordnen, dass sie start und endpunkt und eine verbindung zu dne komponenten herstellen
-			}
-		}
-		*/
-		
-		
-		
-	}
-	
-	
-
-	public int getUnevenDegreeAmount() {
-		int unevenDegreeCounter = 0;
-		for (Vertex v: vertices) {
-			if(v.getDegree()%2 != 0) {
-				unevenDegreeCounter++;
-			}
-		}
-		return unevenDegreeCounter;
-	}
-	
-	public static int getUnevenDegreeAmount(Vertex[] vertices) {
-		int unevenDegreeCounter = 0;
-		for (Vertex v: vertices) {
-			if(v.getDegree()%2 != 0) {
-				unevenDegreeCounter++;
-			}
-		}
-		return unevenDegreeCounter;
-	}
-	
-	public void calculateBlocks() {
-		
-		//Start with articulations
-		//Create a new subgraph with each vertex removed
-		for (int i = 0; i < vertexSum; i++) {
-			
-		}
-	}
-	
+		}		
+	}		
 	
 
 	/*
-	 * *************************************************************************
+	 * -> Dimension Manipulating/Drawing/Constructing Methods
 	 */
 	
 	/*
-	 * *************************************************************************
 	 * Matrix methods
-	 * *************************************************************************
 	 */
-	/**
-	 * Calculate all Exponentialmatrizes to the maximum Number of vertex count - 1
-	 */
-	public void calculateExponentialMatrizes() {
-		for(int i = 1; i < vertexSum-1 ; i++) {
-			adjacencyMatrizes[i] = adjacencyMatrizes[0].exponentiate(i+1);
-		}
-	}
-	
+		
 	public void calculateExponentialMatrix(int exponent) {
 		for(int i = 1; i < exponent; i++) {
 			if(adjacencyMatrizes[i] == null) {
@@ -590,24 +486,52 @@ public class Graph {
 	public void initializeDistanceMatrix() {
 		distanceMatrix = new Matrix(adjacencyMatrizes[0].getMatrix());
 		distanceMatrix.vectorize();		
+	}	
+	
+	/*
+	 * -> End Matrix methods
+	 */
+	
+	/*
+	 * Calculations
+	 */
+	
+	/**
+	 * Calculate individual components of the current Graph.
+	 * Components will be stored in the components field.
+	 */
+	protected void calculateComponents() {
+		createAdjacencyMatrix();
+		initializeDistanceMatrix();
+		initializePathMatrix();
+		calculateDistancePathMatrix();
+		if(isCohesive) {
+			components = new Subgraph[1]; 
+			components[0] = new Subgraph(vertices,edges);
+			componentAmount = 1;
+		}else {			
+			Vector[] pathMatch = pathMatrix.fetchEqualRows();
+			pathMatch = GraphTools.removeDuplicates(pathMatch);
+			int[][] componentIndizes = new int[pathMatch.length][0];
+			for(int i = 0; i < pathMatch.length; i++) {
+				componentIndizes[i] = pathMatch[i].getPositionOfValue(1);
+			}
+			
+			this.componentAmount = pathMatch.length;
+			this.components = new Subgraph[componentAmount];
+			for(int i = 0; i < componentAmount; i++) {
+				Vertex[] v = new Vertex[componentIndizes[i].length];
+				for(int j = 0; j < componentIndizes[i].length; j++) {
+					v[j] = getVertex(componentIndizes[i][j]+1);
+				}
+				this.components[i] = new Subgraph(v);
+			}
+		}		
 	}
 	
 	/**
-	 * Create a binaryMatrix flagging all 1s with true and all 0s with false
+	 * Calculate the Distance and Path Matrix and store them in the distanceMatrix and pathMatrix field.
 	 */
-	public void initializeControlMatrix(){
-		clearControlMatrix();
-		controlMatrix = Matrix.searchAndReport(pathMatrix,1);
-	}
-	
-	/**
-	 * Reset the Controlmatrix flagging all values to false
-	 */
-	public void clearControlMatrix() {
-		controlMatrix = null;
-		controlMatrix = new Matrix(vertexSum,false);
-	}
-	
 	public void calculateDistancePathMatrix() {
 		if(vertexSum > 2) {
 			int pathlength = 2;
@@ -655,104 +579,11 @@ public class Graph {
 		
 	}
 	
-	protected void calculateComponents() {
-		createAdjacencyMatrix();
-		initializeDistanceMatrix();
-		initializePathMatrix();
-		calculateDistancePathMatrix();
-		if(isCohesive) {
-			components = new Subgraph[1]; 
-			components[0] = new Subgraph(vertices,edges);
-			componentAmount = 1;
-		}else {			
-			Vector[] pathMatch = pathMatrix.fetchEqualRows();
-			pathMatch = GraphTools.removeDuplicates(pathMatch);
-			int[][] componentIndizes = new int[pathMatch.length][0];
-			for(int i = 0; i < pathMatch.length; i++) {
-				componentIndizes[i] = pathMatch[i].getIndizesof(1);
-			}
-			
-			this.componentAmount = pathMatch.length;
-			this.components = new Subgraph[componentAmount];
-			for(int i = 0; i < componentAmount; i++) {
-				Vertex[] v = new Vertex[componentIndizes[i].length];
-				for(int j = 0; j < componentIndizes[i].length; j++) {
-					v[j] = getVertex(componentIndizes[i][j]+1);
-				}
-				this.components[i] = new Subgraph(v);
-			}
-		}		
-	}
-	
-	/*
-	 * **************************************************************************************
-	 * Combined Methods
-	 * **************************************************************************************
+	/**
+	 * Calculate Eccentricities of the Graph.
+	 * Store radius in field: radius. Diameter in field diameter.
+	 * Mark center Vertices.
 	 */
-	
-	public void calculateAll() {
-		calculateComponents();
-		calculateEccentricities();
-		findArticulations();
-		findBridges();
-		findEulerPath();
-		
-	}
-	
-	/*
-	 * **************************************************************************************
-	 */
-
-	/*
-	 * Sï¿½ttige den bestehenden Obergraphen mit den Knotennamen in der Liste
-	 */
-	protected Subgraph saturate(Vector vector) {
-		int[] vertexIndizes = new int[vector.size];
-		for (int i = 0; i < vector.size; i++) {
-			vertexIndizes[i] = getIndexOf(vector.getValueAt(i)); 
-		}
-		Matrix subAdjacencyMatrix = adjacencyMatrizes[0].shrinkByIndizes(vertexIndizes);
-		Vertex[] subVertices = new Vertex[subAdjacencyMatrix.size];
-		
-		for(int i = 0; i < subVertices.length; i++) {
-			subVertices[i] = getVertex(vector.getValueAt(i));
-		}
-		
-		Edge[] subEdges = new Edge[0];
-		
-		int rowPosition = 0;
-		int columnPosition = 0;
-		
-		while(rowPosition < subAdjacencyMatrix.size) {
-			while(columnPosition < subAdjacencyMatrix.size) {
-				if(subAdjacencyMatrix.getValueAt(rowPosition, columnPosition) == 1) {
-					subEdges = GraphTools.push(subEdges, subVertices[rowPosition].getEdge(subVertices[columnPosition]));
-				}
-				columnPosition++;
-			}
-			rowPosition++;
-			columnPosition = rowPosition;			
-		}
-		
-		Subgraph saturatedSubgraph = new Subgraph(this,subVertices, subEdges, subAdjacencyMatrix);
-		return saturatedSubgraph;
-	}
-	
-	private Subgraph span(Edge[] tree) {
-		Matrix subMatrix = new Matrix(vertexSum);
-		int row = 0;
-		int column = 0;
-		for (int i = 0; i < tree.length; i++) {
-			row = getIndexOf(tree[i].getVertices()[0].getName());
-			column = getIndexOf(tree[i].getVertices()[1].getName());
-			subMatrix.setValueAt(row, column, 1);
-			subMatrix.setValueAt(column, row, 1);
-		}
-		
-		Subgraph spanningSubgraph = new Subgraph(this,vertices,tree,subMatrix);
-		return spanningSubgraph;
-	}
-
 	public void calculateEccentricities() {
 		if(isCohesive) {
 			eccentricity = distanceMatrix.vectorHighestValues(true);
@@ -772,18 +603,22 @@ public class Graph {
 		
 	}
 	
-	
-	
+	public void calculateAll() {
+		calculateComponents();
+		calculateEccentricities();
+		findArticulations();
+		findBridges();
+		findEulerPath();
+		
+	}
 	/*
-	 * *************************************************************************
+	 * -> End Calculations
 	 */
-
 	
 	
+		
 	/*
-	 * *************************************************************************
 	 * Output Methods
-	 * *************************************************************************
 	 */
 	
 	
@@ -813,7 +648,7 @@ public class Graph {
 			text += "}";
 			text += "\n\nEuler'sche Linie: ";
 			if(eulerPath != null) {
-				if(getUnevenDegreeAmount() == 0)
+				if(eulerPath.getUnevenDegreeAmount() == 0)
 					text += "\t\t geschlossen\n";
 				else
 					text += "\t\t offen\n";
@@ -860,61 +695,10 @@ public class Graph {
 			}
 			text += "}";
 		}
-		
-		
-		
-		/*
-		String text = "";
-		for (int i = 0; i < vertices.length; i++) {
-			text += vertices[i]+"\n";
-		}
-		for (int j = 0; j < edges.length; j++) {
-			text += edges[j]+"\n";
-		}
-		
-		text += "\n Exzentrizitï¿½ten: \n";
-		for (int k = 0; k < vertexSum; k++) {
-			text += "Knoten: "+(k+1)+": "+eccentricity.getValueAt(k)+"\n";
-		}
-		
-		text += "\n Radius: " + radius;
-		text += "\n Durchmesser: " + diameter;
-		
-		text += "\n Zentrum: [";
-		for (int l = 0; l < vertexSum; l++) {
-			if(vertices[l].isCenter()) {
-				text += vertices[l].getName() + ",";
-			}
-		}
-		text += "]";
-		
-		text += "\n Componenten: \n";
-		for(int i = 0; i < components.length; i++) {
-			text += "Komponente " + (i+1) +": \n";
-			text += components[i];
-		}
-		
-		text += "\n Artikulationen: \n";
-		text += getArticulationAmount() +"\n";
-		Vertex[] arts = getArticulations();
-		for(int i = 0; i < arts.length; i++) {
-			text += arts[i];
-		}
-		
-		text += "\n\n Brï¿½cken: \n";
-		text += getBridgeAmount() + "\n";
-		Edge[] bridges = getBridges();
-		for (int i = 0; i < bridges.length; i++) {
-			text += bridges[i];
-		}
-		
-		return text;
-		*/
 		return text;
 	}
-
-
-	
-	
-
+	/*
+	 * -> End Output Methods
+	 */
 }
+

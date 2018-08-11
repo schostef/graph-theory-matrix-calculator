@@ -1,34 +1,32 @@
 /**
  * @author Stefan Schoeberl
- * @version 0.1
- * @modified 2018-03-23
+ * @version 1.0
+ * @modified 2018-08-09
  * 
  * @Class Matrix
- * Matrix calculations. This class only supports MxM Matrizes at the moment
+ * Matrix calculations for an MxM mirrored Matrix.
+ * Most calculations are done with the Vector Objects inside this class.
+ * After every change made in the matrix, the method vectorize() should be called to update the matrix.
  */
 
 package matrix;
 
 import arraytools.*;
-import graph.Vertex;
 
 public class Matrix {
 
 	private int[][] matrix;
 	private boolean[][] binMatrix;
 	public Vector[] verticalVectors, horizontalVectors;
-	private boolean[][] isZero;
 	private boolean isSymmetric = true;
 	public int size = 0;
 
 	/*
-	 * *****************************************************************
 	 * Constructors
-	 * *****************************************************************
 	 */
 
 	/**
-	 * Construct a new Matrix with a prefilled Array
+	 * Construct a new Matrix with a 2 dimensional Array
 	 * 
 	 * @param matrix 2 Dimensional int Array
 	 */
@@ -46,6 +44,10 @@ public class Matrix {
 		
 	}
 	
+	/**
+	 * New boolean type matrix
+	 * @param m
+	 */
 	public Matrix(boolean[][] m) {
 		binMatrix = m;
 		this.size = m.length;
@@ -83,6 +85,10 @@ public class Matrix {
 		
 	}
 	
+	/**
+	 * New Matrix by passing an array of vectors
+	 * @param v
+	 */
 	public Matrix(Vector[] v) {
 		this.size = v[0].size;
 		matrix = new int[size][size];
@@ -97,13 +103,11 @@ public class Matrix {
 	}
 
 	/*
-	 * *****************************************************************
+	 * -> End Constructors
 	 */
 
-	/*
-	 * ***************************************************************** 
+	/* 
 	 * Getters
-	 * *****************************************************************
 	 */
 
 	public boolean isSymmetric() {
@@ -139,30 +143,32 @@ public class Matrix {
 	
 
 	/*
-	 * *****************************************************************
+	 * -> End Getters
 	 */
 	
 	
 	
 	/*
-	 * *****************************************************************
 	 * Setters
-	 * *****************************************************************
 	 */
 	
+	/**
+	 * Set value at position i,j
+	 * @param i
+	 * @param j
+	 * @param value
+	 */
 	public void setValueAt(int i, int j, int value) {
 		matrix[i][j] = value;
 	}
 	
-	public void setFlagAt(int i, int j) {
-		binMatrix[i][j] = !binMatrix[i][j];
-		
-	}
+	/*
+	 * -> End Setters
+	 */
+	
 	
 	/*
-	 * *****************************************************************
 	 * Manipulation and Creation
-	 * *****************************************************************
 	 */
 
 	/**
@@ -299,20 +305,13 @@ public class Matrix {
 				binMatrix[i] = getVector(i,true).getBinVector();
 			}
 		}
-	}
+	}	
 	
-	
-	public Matrix shrinkByIndizes(int[] vertexIndizes) {
-		Matrix shrinkedMatrix = new Matrix(vertexIndizes.length);
-		for (int i = 0; i < vertexIndizes.length; i++) {
-			for (int j = 0; j < vertexIndizes.length; j++) {
-				shrinkedMatrix.setValueAt(i, j, this.getValueAt(vertexIndizes[i], vertexIndizes[j]));
-			}
-		}
-		return shrinkedMatrix;
-	}
-	
-	
+	/**
+	 * Delete a row and it's identical column
+	 * @param index
+	 * @return
+	 */
 	public Matrix removeCross(int index) {
 		Vector[] shortenedVectors = new Vector[size-1];
 		int pos = 0;
@@ -330,20 +329,24 @@ public class Matrix {
 		
 	}
 	
+	/**
+	 * Create a binary matrix, which sets true on a given value
+	 * @param setTrueOnValue
+	 */
 	public void makeBitMap(int setTrueOnValue) {
 		binMatrix = searchAndReport(this, setTrueOnValue).getBinMatrix();
 	}
 	/*
-	 * ******************************************************************
+	 * -> End Manipulation and Creation
 	 */
 	
 	/*
-	 * ******************************************************************
 	 * Calculations
-	 * ******************************************************************
 	 */
 	
 	/**
+	 * @deprecated
+	 * Not being used in the Graph Class. Still usable.
 	 * Calculate exponential cross product
 	 * @param exponent exponent
 	 * @return Cross Product Matrix
@@ -372,13 +375,7 @@ public class Matrix {
 			int stepper = 0;
 			int result = 0;
 
-			/*
-			 * If both matrizes are symmetric we don't need to multiply m x n since there are only m or n vectors
-			 * Therefore multiplications only need to happen on the triangle along the diagonal, reducing steps by n-1 ... 1
-			 * [0,0 0,1 0,2] Copy values along diagonal: 	[  !    !   !]
-			 * [ *  1,1 1,2]								[ 0,1   !   !]
-			 * [ *   *  2,2]								[ 0,2  1,2  !]
-			 */
+			//Due to the symmetry of both matrices, multiplication can be reduced to columns only.
 			while (vertexNumber < size) {
 				stepper = vertexNumber;
 				while (stepper < m.size) {
@@ -394,38 +391,13 @@ public class Matrix {
 		}
 		resultMatrix.vectorize();
 		return resultMatrix;
-	}
+	}	
 	
-	// Berechne die Zeilensumme von Zeile i
-	public Vector vectorSums(boolean isHorizontal) {
-		Vector result = new Vector(size);
-		
-		for(int i = 0; i < size; i++) {
-			if(isHorizontal) {
-				result.setValueAt(i, horizontalVectors[i].sumOf());
-			}else {
-				result.setValueAt(i, verticalVectors[i].sumOf());
-			}
-		}
-		
-		return result;
-	}
-	
-	public int getSymmetricSum() {
-		if(isSymmetric) {
-			int row = 0;
-			int column = 0;
-			int sum = 0;
-			while(row < size) {
-				column = row;
-				sum += horizontalVectors[row].sumOf(column, size);
-				row++;
-			}
-			return sum;			
-		}
-		return -1;
-	}
-	
+	/**
+	 * Get the highest values of all rows or columns
+	 * @param isHorizontal
+	 * @return Result of highest values
+	 */
 	public Vector vectorHighestValues(boolean isHorizontal) {
 		Vector result = new Vector(size);
 		
@@ -439,62 +411,13 @@ public class Matrix {
 		
 		return result;
 	}
-
-	// Berechne die Spaltensumme von Spalte j
-	public int columnSum(int column) {
-		int sum = 0;
-
-		for (int i = 0; i < size; i++) {
-			sum += matrix[i][column];
-		}
-
-		return sum;
-
-	}
 	
-	public int getTotalSum() {
-		int totalSum= 0;
-		for(int i = 0; i < size; i++) {
-			totalSum += horizontalVectors[i].sumOf(i, size);
-		}
-		
-		return totalSum;
-	}
-	
-	public int[] getSumPerRows() {
-		int[] sums = new int[size];
-		for (int i = 0; i < size; i++) {
-			sums[i] = horizontalVectors[i].sumOf();
-		}
-		return sums;
-	}
-	/*
-	 * ********************************************************************
+	/**
+	 * Count how often a specific value appears in the matrix.
+	 * @param value value to search for
+	 * @param alongDiagonal true to ignore mirrored values along the diagonal (only count once per row)
+	 * @return the sum of value appearing in the matrix
 	 */
-	
-	/*
-	 * ********************************************************************
-	 * Control Mechanisms
-	 * ********************************************************************
-	 */
-	
-	public static boolean isIdentical(Matrix m1, Matrix m2) {
-		if(m1 != null && m2 != null && m1.size == m2.size) {
-			for (int i = 0; i < m1.size; i++) {
-				if(!m1.verticalVectors[i].isEqual(m2.verticalVectors[i])) {
-					return false;
-				}
-			}
-			return true;
-		}else {
-			return false;
-		}
-	}
-	
-	public boolean isIdentical(Matrix m1) {
-		return isIdentical(this,m1);
-	}
-	
 	public int countValue(int value,boolean alongDiagonal) {
 		int counter = 0;
 		if(alongDiagonal) {
@@ -509,6 +432,42 @@ public class Matrix {
 		
 		return counter;
 	}
+	
+	/*
+	 * -> End Calculations
+	 */
+	
+	/*
+	 * Control Mechanisms
+	 */
+	
+	/**
+	 * Check if two matrices are identical to each other
+	 * @param m1
+	 * @param m2
+	 * @return
+	 */
+	public static boolean isIdentical(Matrix m1, Matrix m2) {
+		if(m1 != null && m2 != null && m1.size == m2.size) {
+			for (int i = 0; i < m1.size; i++) {
+				if(!m1.verticalVectors[i].isEqual(m2.verticalVectors[i])) {
+					return false;
+				}
+			}
+			return true;
+		}else {
+			return false;
+		}
+	}
+	
+	/**
+	 * Check if another matrix is identical to this one
+	 * @param m1
+	 * @return
+	 */
+	public boolean isIdentical(Matrix m1) {
+		return isIdentical(this,m1);
+	}	
 	
 	/**
 	 * Return the coordinates containing the provided value
@@ -556,6 +515,13 @@ public class Matrix {
 		return coordinates;
 	}
 	
+	/**
+	 * Logical XOR Operation on each value with the same index between two matrices.
+	 * Requires a binary matrix
+	 * @param m1
+	 * @param m2
+	 * @return logical XOR result
+	 */
 	public static Matrix bitOperationXOR(Matrix m1, Matrix m2) {
 		if(m1.size == m2.size) {
 			Matrix compare = new Matrix(m1.size,false);
@@ -572,6 +538,13 @@ public class Matrix {
 		
 	}
 	
+	/**
+	 * Logical AND Operation on each value with the same index between two matrices.
+	 * Requires a binary matrix
+	 * @param m1
+	 * @param m2
+	 * @return logical AND result
+	 */
 	public static Matrix bitOperationAND(Matrix m1, Matrix m2) {
 		if(m1.size == m2.size) {
 			Matrix compare = new Matrix(m1.size,false);
@@ -586,6 +559,11 @@ public class Matrix {
 		}
 	}
 	
+	/**
+	 * Compares all rows in a Matrix with each other and filters out unique rows.
+	 * Discards duplicates.
+	 * @return Vector type array with unique rows
+	 */
 	public Vector[] fetchEqualRows() {
 		Vector[] result = new Vector[0];
 		vectorize();
@@ -605,207 +583,12 @@ public class Matrix {
 
 	
 	/*
-	 * ********************************************************************
+	 * -> End Control Mechanisms
 	 */
 
-	
-
-	
-
-	/**
-	 * @deprecated
-	 * @param zeile
-	 * @return
-	 */
-	public int fetchNumOfZerosRow(int zeile) {
-		int s = 0;
-		for (int i = 0; i < size; i++) {
-			if (isZero[zeile][i]) {
-				s++;
-			}
-		}
-		return s;
-	}
-	
-	/**
-	 * @deprecated
-	 * @param spalte
-	 * @return
-	 */
-	public int fetchNumOfZerosColumn(int spalte) {
-		int s = 0;
-		for (int i = 0; i < size; i++) {
-			if (isZero[i][spalte]) {
-				s++;
-			}
-		}
-		return s;
-	}
-	// ###################################################
-
-	// Gib die Zeilen oder Spaltennummer mit den meisten 0 Werten aus
-	// ###################################################
-	public int getMostZerosRow() {
-		int r = 0;
-		for (int i = 1; i < size; i++) {
-			if (fetchNumOfZerosRow(i) < fetchNumOfZerosRow(i - 1)) {
-				r = i;
-			}
-		}
-
-		return r;
-	}
-
-	public int getMostZerosColumn() {
-		int c = 0;
-		for (int i = 1; i < size; i++) {
-			if (fetchNumOfZerosColumn(i) < fetchNumOfZerosColumn(i - 1)) {
-				c = i;
-			}
-		}
-
-		return c;
-	}
-	// #####################################################
-
-	// Ausgabe an Console
-	public void consolePrintMatrix() {
-		for (int zeile = 0; zeile < size; zeile++) {
-			for (int spalte = 0; spalte < size; spalte++) {
-				System.out.print(getValueAt(zeile, spalte) + " ");
-			}
-			System.out.println();
-		}
-	}
-
-	
-
-	
-
-	// Gibt die Zeilennummer mit der kleinsten Zeilensumme zurück
-	public int getLowestRow() {
-		int rowNumber = rowSum(0);
-		for (int i = 1; i < size; i++) {
-			if (rowSum(i) < rowSum(rowNumber)) {
-				rowNumber = i;
-			}
-		}
-
-		return rowNumber;
-	}
-
-	// Gibt die Zeilennummer mit der größten Zeilensumme zurück
-	public int getHighestRow() {
-		int rowNumber = rowSum(0);
-		for (int i = 1; i < size; i++) {
-			if (rowSum(i) > rowSum(rowNumber)) {
-				rowNumber = i;
-			}
-		}
-
-		return rowNumber;
-	}
-
-	// Gibt die Spaltennummer mit der kleinsten Spaltensumme zurück
-	public int getLowestColumn() {
-		int columnNumber = columnSum(0);
-		for (int i = 1; i < size; i++) {
-			if (columnSum(i) < columnSum(columnNumber)) {
-				columnNumber = i;
-			}
-		}
-
-		return columnNumber;
-	}
-
-	// Gibt die Spaltennummer mit der größten Spaltensumme zurück
-	public int getHighestColumn() {
-		int columnNumber = columnSum(0);
-		for (int i = 1; i < size; i++) {
-			if (columnSum(i) > columnSum(columnNumber)) {
-				columnNumber = i;
-			}
-		}
-
-		return columnNumber;
-	}
-	
-	
-	public int determinate() {
-
-		// 1. Entferne die Zeile und Spalte mit der größten Summe
-		// 2. Wie viele determinanten müssen berechnet werden, bis zu einer 3x3 Matrix
-		// 3. Überlegen.... wohin speichert man die Zwischenmatrixen?
-
-		// Bevor �berhaupt Determinanten berechnet werden k�nnen m�ssen folgende
-		// Variablen vorab initialisiert werden:
-		// -Wie viele Determinanten werden ben�tigt um auf eine 3x3 Matrix zu kommen
-		// -Welche Zeilen, bzw. Spalten kommen in frage bis zur 3x3 Matrix
-		// -Wie viele Zeilen bzw. Spalten enthalten keine 0 = Anzahl der Multiplikatoren
-		// und Submatrizen
-		// -Setze vorab die Multiplikatoren mit dem negationOverlay fest
-		// -erstelle die Submatrizen
-		// -Anwendung des Sarrus Algorithmus
-		// -Summe bilden und Determinante ausgeben
-
-		/*
-		 * Matrix[] determinantenMatrizen = new Matrix[knoten - 1];
-		 * 
-		 * 
-		 */
-
-		Matrix determinateMatrix = this;
-
-		while (determinateMatrix.size > 3) {
-			// compare Zeros on first row / column
-			// Choose row or column with most zeros
-			// size - numofzeros = num of multiplikators
-			// fill the first array with multiplikators * negationoverlay starting at [0]
-			// permanently remove chosen row / column
-			// temporarily remove column/ row with multiplikator position
-			// store new matrizes in the n-th section of determinateMatrizes
-			// n -- for the while loop, can't use size of single matrix since there can be
-			// multiple
-			// but the dimension doesn't change for each of the determinateMatrizes
-			// also the size can be fixed already... S(Size) - 3 = x(numOfDeterminations)
-		}
-
-		Matrix[] determinanteMatrizes = new Matrix[size - 1];
-		Matrix negationOverlay = new Matrix(size - 1);
-		int removeFlag = 0;
-
-		// erstelle das "Schachbrettmuster"
-		// summe indizes = gerade -> +1
-		// ungerade -> -1
-		negationOverlay.setValueAt(0, 0, 1);
-		for (int i = 0; i < negationOverlay.size; i++) {
-			for (int j = 0; j < negationOverlay.size; j++) {
-				if ((i + j) % 2 == 0) {
-					negationOverlay.setValueAt(i, j, 1);
-				} else {
-					negationOverlay.setValueAt(i, j, -1);
-				}
-			}
-		}
-
-		// Determiniere nach der kleinsten Zeilensumme
-		// Sonst determiniere nach der kleinsten Spaltensumme
-		if (getMostZerosRow() <= getMostZerosColumn()) {
-			/*
-			 * Finde Nullen Erstelle Determinante Vorzeichen beachten
-			 */
-		} else {
-
-		}
-
-		return 0;
-	}
 
 	/*
-	 * *****************************************************************************
-	 * **** Output
-	 * *****************************************************************************
-	 * ****
+ 	 * Output
 	 */
 
 	public String toString() {
@@ -817,6 +600,11 @@ public class Matrix {
 		return text;
 	}
 	
+	/**
+	 * Convert the matrix to char type.
+	 * Replaces -1 with the infinity character
+	 * @return
+	 */
 	public char[][] convertToChar(){
 		char[][] c = new char[size][size];
 		int REDIX=10; 
@@ -833,37 +621,10 @@ public class Matrix {
 		}
 		
 		return c;
-	}
-	
-	public Matrix copy() {
-		Matrix m = new Matrix(size);
-		for(int i = 0; i < size; i++) {
-			for(int j = 0; j < size; j++) {
-				m.setValueAt(i, j, matrix[i][j]);
-			}
-		}
-		
-		m.vectorize();
-		return m;
-	}
-
-
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
+	}	
 
 	/*
-	 * *****************************************************************************
-	 * *****
+	 * -> End Output
 	 */
 
 }
