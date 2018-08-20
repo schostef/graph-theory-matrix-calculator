@@ -31,10 +31,11 @@ public class Edge {
 		vertices[0] = v1;
 		vertices[1] = v2;
 		name = "["+v1.getName()+","+v2.getName()+"]";
-		vertices[0].addNeighbor(v2);
-		vertices[1].addNeighbor(v1);
 		vertices[0].addEdge(this);
 		vertices[1].addEdge(this);
+		vertices[0].addNeighbor(v2);
+		vertices[1].addNeighbor(v1);
+		
 	
 		
 	}

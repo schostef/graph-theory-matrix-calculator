@@ -501,7 +501,7 @@ public class Graph {
 	 * Components will be stored in the components field.
 	 */
 	protected void calculateComponents() {
-		createAdjacencyMatrix();
+		//createAdjacencyMatrix();
 		initializeDistanceMatrix();
 		initializePathMatrix();
 		calculateDistancePathMatrix();
