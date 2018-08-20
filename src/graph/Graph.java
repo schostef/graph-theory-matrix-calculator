@@ -655,7 +655,7 @@ public class Graph {
 				text += eulerPath;
 				text += "}";
 			}else {
-				text += "\t\t nicht möglich\n"+error;
+				text += "\t\t nicht moeglich\n"+error;
 			}
 		}else {
 			text += "Nein";

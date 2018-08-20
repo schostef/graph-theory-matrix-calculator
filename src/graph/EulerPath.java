@@ -54,11 +54,11 @@ public class EulerPath {
 		int unevenDegreeVertexAmount = getUnevenDegreeAmount();
 		s.calculateAll();
 		if(s.getComponentAmount() > 1) {
-			throw new InputGraphNotCohesiveException("Übergebener Graph nicht zusammenhängend");
+			throw new InputGraphNotCohesiveException("Übergebener Graph nicht zusammenhaengend");
 		}
 		
 		if(unevenDegreeVertexAmount > 2) {
-			throw new EulerNotPossibleException("Euler nicht möglich, mehr als 2 Kanten mit ungeraden Grad vorhanden");
+			throw new EulerNotPossibleException("Euler nicht moeglich, mehr als 2 Kanten mit ungeraden Grad vorhanden");
 		}
 		
 		pathToString = new String[edges.length];
@@ -369,6 +369,12 @@ public class EulerPath {
 		if(ep1.isCircle && !ep2.isCircle) {
 			ep1.setStartEndPoint(intersection);
 			ep1.refresh();
+			if(ep2.getStartFrom().getName() == intersection.getName()) {
+				Vertex reverse = ep2.getGoTo();
+				ep2.setGoTo(ep2.getStartFrom());
+				ep2.setStartFrom(reverse);
+				ep2.refresh();
+			}
 			newEuler = ep2;
 			newPath = EulerPath.insertInto(ep2.getPath(),ep1.getPath(),intersection);
 			newEuler.setPath(newPath);
@@ -379,6 +385,12 @@ public class EulerPath {
 		if(!ep1.isCircle && ep2.isCircle) {
 			ep2.setStartEndPoint(intersection);
 			ep2.refresh();
+			if(ep1.getStartFrom().getName() == intersection.getName()) {
+				Vertex reverse = ep1.getGoTo();
+				ep1.setGoTo(ep1.getStartFrom());
+				ep1.setStartFrom(reverse);
+				ep1.refresh();
+			}
 			newEuler = ep1;
 			newPath = EulerPath.insertInto(ep1.getPath(),ep2.getPath(),intersection);
 			newEuler.setPath(newPath);
