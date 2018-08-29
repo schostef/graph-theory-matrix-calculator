@@ -54,7 +54,7 @@ public class EulerPath {
 		int unevenDegreeVertexAmount = getUnevenDegreeAmount();
 		s.calculateAll();
 		if(s.getComponentAmount() > 1) {
-			throw new InputGraphNotCohesiveException("Übergebener Graph nicht zusammenhaengend");
+			throw new InputGraphNotCohesiveException("Uebergebener Graph nicht zusammenhaengend");
 		}
 		
 		if(unevenDegreeVertexAmount > 2) {
@@ -574,10 +574,13 @@ public class EulerPath {
 				//If nothing can be found in the edge array and the blacklist,
 				//the path is broken and needs to be recalculated
 			}
+			if(!edgeFound) {
+				cancel = true;
+			}
 			cycle++;
 			
 			//If the path fails, put the remaining "lost" edges to the front of the edge array and restart the process
-			if(cycle > this.edges.length) {
+			if(cycle > this.edges.length || cancel) {
 				cancel = true;
 				path = GraphTools.removeNullValues(path);
 				Edge[] shuffle = new Edge[edges.length+path.length];

@@ -564,17 +564,19 @@ public class Matrix {
 	 * Discards duplicates.
 	 * @return Vector type array with unique rows
 	 */
-	public Vector[] fetchEqualRows() {
+	public Vector[] fetchUniqueRows() {
 		Vector[] result = new Vector[0];
 		vectorize();
 		result = GraphTools.push(result, verticalVectors[0]);
 		for(int i = 1; i < size; i++) {
 			boolean match = false;
 			for(int j = 0; j < result.length && !match; j++) {
-				if(!result[j].isEqual(verticalVectors[i])) {
-					result = GraphTools.push(result, verticalVectors[i]);
+				if(result[j].isEqual(verticalVectors[i])) {
 					match = true;
 				}
+			}
+			if(!match) {
+				result = GraphTools.push(result, verticalVectors[i]);
 			}
 		}
 		return result;

@@ -510,8 +510,8 @@ public class Graph {
 			components[0] = new Subgraph(vertices,edges);
 			componentAmount = 1;
 		}else {			
-			Vector[] pathMatch = pathMatrix.fetchEqualRows();
-			pathMatch = GraphTools.removeDuplicates(pathMatch);
+			Vector[] pathMatch = pathMatrix.fetchUniqueRows();
+			//pathMatch = GraphTools.removeDuplicates(pathMatch);
 			int[][] componentIndizes = new int[pathMatch.length][0];
 			for(int i = 0; i < pathMatch.length; i++) {
 				componentIndizes[i] = pathMatch[i].getPositionOfValue(1);
@@ -543,10 +543,15 @@ public class Graph {
 				adjacencyMatrizes[pathlength-1].makeBitMap(0);
 				adjacencyMatrizes[pathlength-2].makeBitMap(0);
 				//distanceMatrix.makeBitMap(0);
-				changeMatrix = Matrix.bitOperationAND(lastPathMatrix, (Matrix.bitOperationXOR(adjacencyMatrizes[pathlength-2], adjacencyMatrizes[pathlength-1])));
+				changeMatrix = Matrix.bitOperationAND(lastPathMatrix, 
+						(Matrix.bitOperationXOR(adjacencyMatrizes[pathlength-2], adjacencyMatrizes[pathlength-1])));
 				for(int i = 0; i < vertexSum; i++) {
-					for( int j = 0; j < vertexSum; j++) {
+					for( int j = i; j < vertexSum; j++) {
 						if(changeMatrix.getBinMatrix()[i][j]) {
+							if(j != i) {
+								pathMatrix.setValueAt(j, i, 1);
+								distanceMatrix.setValueAt(j, i, pathlength);
+							}
 							pathMatrix.setValueAt(i, j, 1);
 							distanceMatrix.setValueAt(i, j, pathlength);
 						}

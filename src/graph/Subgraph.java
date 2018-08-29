@@ -143,8 +143,8 @@ public class Subgraph extends Graph {
 		calculateDistancePathMatrix();
 		if(!storeComponents) {
 			if(!isCohesive) {			
-				Vector[] pathMatch = pathMatrix.fetchEqualRows();
-				pathMatch = GraphTools.removeDuplicates(pathMatch);
+				Vector[] pathMatch = pathMatrix.fetchUniqueRows();
+				//pathMatch = GraphTools.removeDuplicates(pathMatch);
 				int[][] componentIndizes = new int[pathMatch.length][0];
 				for(int i = 0; i < pathMatch.length; i++) {
 					componentIndizes[i] = pathMatch[i].getPositionOfValue(1);
@@ -158,8 +158,8 @@ public class Subgraph extends Graph {
 				components[0] = new Subgraph(vertices,edges);
 				componentAmount = 1;
 			}else {			
-				Vector[] pathMatch = pathMatrix.fetchEqualRows();
-				pathMatch = GraphTools.removeDuplicates(pathMatch);
+				Vector[] pathMatch = pathMatrix.fetchUniqueRows();
+				//pathMatch = GraphTools.removeDuplicates(pathMatch);
 				int[][] componentIndizes = new int[pathMatch.length][0];
 				for(int i = 0; i < pathMatch.length; i++) {
 					componentIndizes[i] = pathMatch[i].getPositionOfValue(1);
